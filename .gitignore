@@ -1,0 +1,7 @@
+files
+ipfs-kubo/
+.debhelper
+*.substvars
+*.log
+*.debhelper
+

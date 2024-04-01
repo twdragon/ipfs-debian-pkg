@@ -1,4 +1,4 @@
 #!/bin/bash
-
+source /usr/share/debconf/confmodule
 exit 0
 

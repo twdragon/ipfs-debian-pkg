@@ -1,0 +1,47 @@
+#!/bin/bash
+set -e
+source /usr/share/debconf/confmodule
+db_version 2.0
+
+# INTERNAL DATA
+config_mode="${1}"
+installed_version="${2}"
+ipfs_repo_dir="/var/ipfs"
+ipfs_config="/etc/ipfs"
+
+if [[ "${config_mode}" == "configure" ]] # Install from scratch
+then
+    if [[ -z "${installed_version}" ]] # Installing first time
+    then
+        # Resetting parameters
+        db_set ipfs-kubo/repository-directory "${ipfs_repo_dir}"
+        db_set ipfs-kubo/predefined-config "${ipfs_config}"
+        db_input high ipfs-kubo/repository-directory || true
+        db_input high ipfs-kubo/predefined-config || true
+        db_input high ipfs-kubo/system-wide || true
+        db_go || true
+        db_get ipfs-kubo/system-wide
+        if [ "${RET}" = false ]
+        then
+            db_input high ipfs-kubo/user-name || true
+        fi
+    else # Upgrade
+        db_get ipfs-kubo/repository-directory
+        ipfs_repo_dir="${RET}"
+        if [[ -z "${ipfs_repo_dir}" ]]
+        then
+            ipfs_repo_dir="/var/ipfs"
+            db_set ipfs-kubo/repository-directory "${ipfs_repo_dir}"
+        fi
+        db_input medium ipfs-kubo/repository-directory || true
+        db_input medium ipfs-kubo/regenerate-repository || true
+    fi
+    db_go || true
+else # Reconfigure
+    db_input high ipfs-kubo/repository-directory || true
+    db_input high ipfs-kubo/predefined-config || true
+    db_input high ipfs-kubo/regenerate-repository || true
+    db_go || true
+fi
+
+

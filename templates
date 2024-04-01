@@ -1,0 +1,47 @@
+Template: ipfs-kubo/repository-directory
+Type: string
+Description: IPFS repository directory:
+ This directory will contain the IPFS repository. It will contain all the data
+ cached, stored or downloaded from IPFS network in its block-based raw
+ representation. The default value is /var/ipfs. Please note that this
+ directory should be placed on the volume having enough space to store all your
+ repository data.
+
+Template: ipfs-kubo/predefined-config
+Type: string
+Description: IPFS daemon configuration file:
+ If you have a predefined configuration file for your daemon, please list it
+ here. In the case this file exists, the daemon will not try to regenerate it.
+
+Template: ipfs-kubo/regenerate-repository
+Type: boolean
+Default: false
+Description: Delete and regenerate the existing repository?
+ CAUTION! It will remove all the data you had stored in your IPFS repository
+ before without a possibility to recover them or to restore your repository
+ in the binary identical way! You will start your new repository from scratch!
+
+Template: ipfs-kubo/system-wide
+Type: boolean
+Default: true
+Description: Install IPFS Kubo system-wide?
+ If you don't want to install Kubo system-wide, please select NO or FALSE here
+ and indicate the username for which you want to make IPFS commands available.
+ Otherwise, the system user with the name 'ipfs' will be created, and all the
+ commands will be aliased in /etc/profile.d/ipfs using sudo.
+
+Template: ipfs-kubo/user-name
+Type: string
+Description: IPFS service user name:
+ This is the name of the user who will own the IPFS repository. For him all the
+ operations will be allowed just from CLI because the systemd daemon will use
+ this username to run the IPFS daemon in order.
+ CAUTION! Please make sure that this user exists in the system!
+
+Template: ipfs-kubo/repository-purge
+Type: boolean
+Description: Do you want to remove also the repository directory?
+ CAUTION! It will remove all the data you had stored in your IPFS repository
+ before without a possibility to recover them or to restore your repository
+ in the binary identical way!
+
