@@ -1,0 +1,25 @@
+#!/bin/bash
+set -e
+source /usr/share/debconf/confmodule
+db_version 2.0
+
+if [[ "${1}" == "purge" ]]
+then
+    db_input critical ipfs-kubo/repository-purge || true
+    db_input critical ipfs-kubo/config-purge || true
+    db_go || true
+    db_get ipfs-kubo/repository-purge || true
+    if [[ "${RET}" == "true" ]]
+    then
+        db_get ipfs-kubo/repository-directory || true
+        rm -rf "${RET}"
+    fi
+    db_get ipfs-kubo/config-purge || true
+    if [[ "${RET}" == "true" ]]
+    then
+        db_get ipfs-kubo/predefined-config || true
+        rm -f "${RET}"
+    fi
+    db_purge || true
+fi
+

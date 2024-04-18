@@ -3,11 +3,28 @@ set -e
 source /usr/share/debconf/confmodule
 db_version 2.0
 
+# INSTALLATION TEMPLATES LIST
+# - repository-directory
+# - predefined-config
+# - regenerate-repository
+# - system-wide
+# - user-name
+# - network-profile-note
+# - network-profile
+# - memory-quota
+# - cpu-quota
+# - hardened
+
+# REMOVAL TEMPLATES LIST
+# - repository-purge
+# - config-purge
+
 # INTERNAL DATA
 config_mode="${1}"
 installed_version="${2}"
 ipfs_repo_dir="/var/ipfs"
 ipfs_config="/etc/ipfs"
+ipfs_username="ipfs"
 
 if [[ "${config_mode}" == "configure" ]] # Install from scratch
 then
@@ -16,32 +33,52 @@ then
         # Resetting parameters
         db_set ipfs-kubo/repository-directory "${ipfs_repo_dir}"
         db_set ipfs-kubo/predefined-config "${ipfs_config}"
+        db_set ipfs-kubo/user-name "${ipfs_username}"
         db_input high ipfs-kubo/repository-directory || true
         db_input high ipfs-kubo/predefined-config || true
         db_input high ipfs-kubo/system-wide || true
         db_go || true
         db_get ipfs-kubo/system-wide
-        if [ "${RET}" = false ]
+        if [[ "${RET}" == "false" ]]
         then
+            db_subst ipfs-kubo/user-name sysuser "`getent passwd | awk -F: '($3>=1000)&&($1!="nobody"){print $1}' | paste -s -d "," | awk '{gsub(/,/, ", ")}1'`"
+            db_fset ipfs-kubo/user-name seen false
             db_input high ipfs-kubo/user-name || true
+            db_go || true
         fi
-    else # Upgrade
-        db_get ipfs-kubo/repository-directory
-        ipfs_repo_dir="${RET}"
-        if [[ -z "${ipfs_repo_dir}" ]]
-        then
-            ipfs_repo_dir="/var/ipfs"
-            db_set ipfs-kubo/repository-directory "${ipfs_repo_dir}"
-        fi
+        db_input high ipfs-kubo/network-profile-note || true
+        db_input high ipfs-kubo/network-profile || true
+        db_input high ipfs-kubo/memory-quota || true
+        db_input high ipfs-kubo/cpu-quota || true
+        db_input high ipfs-kubo/hardened || true
+        db_set ipfs-kubo/repository-directory-old "" || true
+        db_set ipfs-kubo/predefined-config-old "" || true
+        db_go || true
+    else
+        db_get ipfs-kubo/repository-directory || true
+        db_set ipfs-kubo/repository-directory-old "${RET}" || true
+        db_get ipfs-kubo/predefined-config || true
+        db_set ipfs-kubo/predefined-config-old "${RET}" || true
         db_input medium ipfs-kubo/repository-directory || true
-        db_input medium ipfs-kubo/regenerate-repository || true
+        db_input medium ipfs-kubo/predefined-config || true
+        db_input medium ipfs-kubo/memory-quota || true
+        db_input medium ipfs-kubo/cpu-quota || true
+        db_input medium ipfs-kubo/hardened || true
+        db_go || true
     fi
-    db_go || true
-else # Reconfigure
-    db_input high ipfs-kubo/repository-directory || true
-    db_input high ipfs-kubo/predefined-config || true
-    db_input high ipfs-kubo/regenerate-repository || true
-    db_go || true
 fi
 
+if [[ "${config_mode}" == "reconfigure" ]]
+then
+    db_get ipfs-kubo/repository-directory || true
+    db_set ipfs-kubo/repository-directory-old "${RET}" || true
+    db_get ipfs-kubo/predefined-config || true
+    db_set ipfs-kubo/predefined-config-old "${RET}" || true
+    db_input high ipfs-kubo/repository-directory || true
+    db_input high ipfs-kubo/predefined-config || true
+    db_input high ipfs-kubo/memory-quota || true
+    db_input high ipfs-kubo/cpu-quota || true
+    db_input high ipfs-kubo/hardened || true
+    db_go || true
+fi
 

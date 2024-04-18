@@ -13,14 +13,6 @@ Description: IPFS daemon configuration file:
  If you have a predefined configuration file for your daemon, please list it
  here. In the case this file exists, the daemon will not try to regenerate it.
 
-Template: ipfs-kubo/regenerate-repository
-Type: boolean
-Default: false
-Description: Delete and regenerate the existing repository?
- CAUTION! It will remove all the data you had stored in your IPFS repository
- before without a possibility to recover them or to restore your repository
- in the binary identical way! You will start your new repository from scratch!
-
 Template: ipfs-kubo/system-wide
 Type: boolean
 Default: true
@@ -31,17 +23,81 @@ Description: Install IPFS Kubo system-wide?
  commands will be aliased in /etc/profile.d/ipfs using sudo.
 
 Template: ipfs-kubo/user-name
-Type: string
-Description: IPFS service user name:
+Type: select
+Choices: ${sysuser}
+Description: IPFS service user name.
  This is the name of the user who will own the IPFS repository. For him all the
  operations will be allowed just from CLI because the systemd daemon will use
  this username to run the IPFS daemon in order.
- CAUTION! Please make sure that this user exists in the system!
+
+Template: ipfs-kubo/network-profile-note
+Type: note
+Description: IPFS networking profile
+ CAUTION!!! Thorough selection of the proper networking profile for your IPFS
+ daemon is IMPORTANT!!! Please read this text carefully!
+ .
+ - server - the profile dedicated to the systems that have publicly available
+ external IP address, assuming the loal peer discovery should be closed.
+ .
+ - test - this profile reduces the external interactions made my IPFS node as
+ much as it is possible, feasible for testing environments.
+ .
+ - lowpower - the special profile dedicated to the machines that have very low
+ amount of resources. It reduces the IPFS impact on the system as much as it 
+ is possible. Consider also usage of the system service limits to reduce that
+ impact.
+ .
+ - default-networking [default] - local daemon profile, feasible for the most
+ desktop systems, including local peer discovery, pretty similar to BitTorrent.
+
+Template: ipfs-kubo/network-profile
+Type: select
+Choices: server, test, lowpower, default-networking
+Default: default-networking
+Description: IPFS network daemon profile
+ These are the possible names of the networking profile that should be applied
+ during the initial setup of IPFS daemon. Please select carefully according to
+ the description shown on the previous screen!
+
+Template: ipfs-kubo/memory-quota
+Type: select
+Choices: 512MiB, 1GiB, 2GiB, 4GiB, 6GiB, 8GiB, 12GiB, unlimited
+Default: unlimited
+Description: IPFS network daemon memory accounting profile
+ Select the amount of memory your IPFS daemon will be limited to. CAUTION!!!
+ This number should comply with the real amount of memory installed in the
+ system, otherwise it will have no effect!
+
+Template: ipfs-kubo/cpu-quota
+Type: select
+Choices: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, unlimited
+Default: unlimited
+Description: IPFS network daemon CPU cores accounting profile
+ Select the quantity of the CPU cores your IPFS daemon will be limited to.
+ CAUTION!!! This number should comply with the real CPU cores installed in
+ the system, otherwise it will have no effect!
+
+Template: ipfs-kubo/hardened
+Type: boolean
+Default: false
+Description: Install IPFS Kubo in Hardened mode?
+ If this option is turned on, IPFS Kubo systemd service will be installed in
+ Hardened Security mode. This would affect the access rules and user experience
+ for files and directories. It is not recommended to use this mode unless you
+ do not know what are you doing and why do you need such a high security level.
 
 Template: ipfs-kubo/repository-purge
 Type: boolean
+Default: false
 Description: Do you want to remove also the repository directory?
  CAUTION! It will remove all the data you had stored in your IPFS repository
  before without a possibility to recover them or to restore your repository
  in the binary identical way!
+
+Template: ipfs-kubo/config-purge
+Type: boolean
+Default: false
+Description: Do you want to remove also the previous daemon config?
+ CAUTION! It will remove all the setup you had made before, so to install IPFS
+ Kubo again you will be in need to write the new config file from scratch.
 

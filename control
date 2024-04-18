@@ -9,7 +9,7 @@ Rules-Requires-Root: no
 
 Package: ipfs-kubo
 Architecture: amd64
-Pre-Depends: debconf (>= 0.2.26)
+Pre-Depends: debconf (>= 0.2.26), coreutils (>= 5.2.0)
 Depends: libc6, bash-completion, systemd, sudo
 Description: Kubo was the first IPFS implementation and is the most widely used
  one today. Implementing the Interplanetary Filesystem - the Web3 standard for
