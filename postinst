@@ -57,8 +57,8 @@ EOM
     esac
     if [[ "${MEMQUOTA}" != "unlimited" ]]
     then
+        echo -e "Environment=GOMEMLIMIT=${MEMQUOTA}" >> "${SYSTEMD_UNIT_PATH}"
     fi
-Environment=GOMEMLIMIT="5GiB"
 
 #Runtime
 ExecStart=/util/bin/ipfs daemon --migrate --enable-gc
