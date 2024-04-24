@@ -3,11 +3,121 @@ set -e
 source /usr/share/debconf/confmodule
 db_version 2.0
 
-if [[ "${1}" == "configure" ]]
-then
-    if [[ -z "${2}" ]] # Install from scratch
+#!/bin/sh
+
+set -e
+
+function generate_systemd_unit {
+    SYSTEMD_UNIT_PATH="/lib/systemd/system/ipfs.service"
+    IPFS_SERVICE_NAME="ipfs"
+
+    cat << 'EOM' > "${SYSTEMD_UNIT_PATH}"
+[Unit]
+Description=IPFS single node control service - P2P distributed content-based CDN with file frontend
+Documentation=https://docs.ipfs.io/
+After=syslog.target network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=notify
+EOM
+
+    db_get ipfs-kubo/repository-directory || true
+    echo -e "Environment=IPFS_PATH=${RET}" >> "${SYSTEMD_UNIT_PATH}"
+    db_get ipfs-kubo/predefined-config || true
+    echo -e "Environment=IPFS_CONFIG=${RET}" >> "${SYSTEMD_UNIT_PATH}"
+    db_get ipfs-kubo/predefined-config || true
+    echo -e "Environment=IPFS_CONFIG=${RET}" >> "${SYSTEMD_UNIT_PATH}"
+    db_get ipfs-kubo/memory-quota || true
+    MEMQUOTA="unlimited"
+    case "${RET}" in
+        512MiB)
+            MEMQUOTA=536870912
+        ;;
+        1GiB)
+            MEMQUOTA=1073741824
+        ;;
+        2GiB)
+            MEMQUOTA=2147483648
+        ;;
+        4GiB)
+            MEMQUOTA=4294967296
+        ;;
+        6GiB)
+            MEMQUOTA=6442450944
+        ;;
+        8GiB)
+            MEMQUOTA=8589934592
+        ;;
+        12GiB)
+            MEMQUOTA=12884901888
+        ;;
+        *)
+            MEMQUOTA="unlimited"
+        ;;
+    esac
+    if [[ "${MEMQUOTA}" != "unlimited" ]]
     then
-        exit 0
     fi
-    exit 0
-fi
+Environment=GOMEMLIMIT="5GiB"
+
+#Runtime
+ExecStart=/util/bin/ipfs daemon --migrate --enable-gc
+TimeoutSec=120
+User=ipfs
+Group=ipfs
+Restart=always
+RestartSec=60s
+KillSignal=SIGINT
+RuntimeMaxSec=2d
+
+#Accounting
+MemoryAccounting=true
+MemoryHigh=4294967296
+MemoryMax=5476083302
+CPUAccounting=true
+CPUQuota=150%
+MemorySwapMax=0
+
+[Install]
+WantedBy=default.target
+
+}
+
+case "$1" in
+    configure)
+        # Searching for instantiated templates
+        
+        # Generate and install the systemd unit file
+        systemctl enable $IPFS_SERVICE_NAME
+        systemctl start $IPFS_SERVICE_NAME
+    ;;
+
+    upgrade)
+        systemctl daemon-reload
+        systemctl restart $IPFS_SERVICE_NAME
+    ;;
+
+    remove|deconfigure)
+        # Stop the IPFS service and remove the systemd unit file
+        systemctl stop $IPFS_SERVICE_NAME
+        systemctl disable $IPFS_SERVICE_NAME
+        rm -f $SYSTEMD_UNIT_PATH
+    ;;
+
+    purge)
+        # Purge all related files and directories
+        systemctl stop $IPFS_SERVICE_NAME
+        systemctl disable $IPFS_SERVICE_NAME
+        rm -f $SYSTEMD_UNIT_PATH
+        # Add commands to remove any additional IPFS-related files and directories
+        # Example: rm -rf /var/lib/ipfs
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+exit 0
+
