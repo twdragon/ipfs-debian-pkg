@@ -36,6 +36,7 @@ then
         db_set ipfs-kubo/user-name "${ipfs_username}"
         db_input high ipfs-kubo/repository-directory || true
         db_input high ipfs-kubo/predefined-config || true
+        db_input high ipfs-kubo/repository-size-note || true
         db_input high ipfs-kubo/system-wide || true
         db_go || true
         db_get ipfs-kubo/system-wide

@@ -7,6 +7,17 @@ Description: IPFS repository directory:
  directory should be placed on the volume having enough space to store all your
  repository data.
 
+Template: ipfs-kubo/repository-size-note
+Type: note
+Description: The initial size of the IPFS repository database is set to 10 GiB.
+ The repository size is one of the most important parameters you should define
+ for your IPFS node, because the amount of data you will be able to share using
+ your node depends from it entirely. The installation script does not set this
+ parameter for you explicitly, so please edit directly your configuration file
+ to set it up! The default value of 10 GiB is defined in Kubo's source code,
+ and it is a subject to change in the future, so please take care of it and
+ edit your config file thoroughly!
+
 Template: ipfs-kubo/predefined-config
 Type: string
 Description: IPFS daemon configuration file:
@@ -85,6 +96,8 @@ Description: Install IPFS Kubo in Hardened mode?
  Hardened Security mode. This would affect the access rules and user experience
  for files and directories. It is not recommended to use this mode unless you
  do not know what are you doing and why do you need such a high security level.
+ .
+ NOTE! This also overrides an attempt to install Kubo in the userspace!
 
 Template: ipfs-kubo/repository-purge
 Type: boolean

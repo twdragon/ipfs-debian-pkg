@@ -29,27 +29,35 @@ EOM
     echo -e "Environment=IPFS_CONFIG=${RET}" >> "${SYSTEMD_UNIT_PATH}"
     db_get ipfs-kubo/memory-quota || true
     MEMQUOTA="unlimited"
+    MEMHIGH="unlimited"
     case "${RET}" in
         512MiB)
             MEMQUOTA=536870912
+            MEMHIGH=402653184 # 384MiB
         ;;
         1GiB)
             MEMQUOTA=1073741824
+            MEMHIGH=805306368 # 768MiB
         ;;
         2GiB)
             MEMQUOTA=2147483648
+            MEMHIGH=1879048192 # 1.75GiB
         ;;
         4GiB)
             MEMQUOTA=4294967296
+            MEMHIGH=3221225472 # 3GiB
         ;;
         6GiB)
             MEMQUOTA=6442450944
+            MEMHIGH=5368709120 # 5GiB
         ;;
         8GiB)
             MEMQUOTA=8589934592
+            MEMHIGH=7516192768 # 7GiB
         ;;
         12GiB)
             MEMQUOTA=12884901888
+            MEMHIGH=10737418240 # 10GiB
         ;;
         *)
             MEMQUOTA="unlimited"
@@ -57,26 +65,50 @@ EOM
     esac
     if [[ "${MEMQUOTA}" != "unlimited" ]]
     then
-        echo -e "Environment=GOMEMLIMIT=${MEMQUOTA}" >> "${SYSTEMD_UNIT_PATH}"
+        cat << 'EOM' >> "${SYSTEMD_UNIT_PATH}"
+# Memory accounting: Golang
+Environment=GOMEMLIMIT=${MEMQUOTA}
+# Memory accounting: systemd
+MemoryAccounting=true
+MemoryHigh=${MEMHIGH}
+MemoryMax=${MEMQUOTA}
+EOM
+    else
+        echo -e "MemoryAccounting=false" >> "${SYSTEMD_UNIT_PATH}"
     fi
-
+    db_get ipfs-kubo/cpu-quota || true
+    if [[ "${RET}" != "unlimited" ]]
+    then
+        CPUQUOTA=$(("${RET}" * 100))
+        cat << 'EOM' >> "${SYSTEMD_UNIT_PATH}"
+# CPU accounting: systemd
+CPUAccounting=true
+CPUQuota=${CPUQUOTA}
+EOM
+    else
+        echo -e "CPUAccounting=false" >> "${SYSTEMD_UNIT_PATH}"
+    fi
+    cat << 'EOM' >> "${SYSTEMD_UNIT_PATH}"
 #Runtime
+TimeoutStartSec=600
 ExecStart=/util/bin/ipfs daemon --migrate --enable-gc
 TimeoutSec=120
+Restart=on-failure
+RestartSec=120
+KillSignal=SIGINT
+RuntimeMaxSec=172800
+MemorySwapMax=0
+EOM
+
+    db_get ipfs-kubo/system-wide || true
+    if [[ "${RET}" == "true" ]]
+    then
+        
+    else
+    fi
+
 User=ipfs
 Group=ipfs
-Restart=always
-RestartSec=60s
-KillSignal=SIGINT
-RuntimeMaxSec=2d
-
-#Accounting
-MemoryAccounting=true
-MemoryHigh=4294967296
-MemoryMax=5476083302
-CPUAccounting=true
-CPUQuota=150%
-MemorySwapMax=0
 
 [Install]
 WantedBy=default.target
