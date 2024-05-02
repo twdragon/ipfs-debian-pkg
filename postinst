@@ -100,18 +100,47 @@ RuntimeMaxSec=172800
 MemorySwapMax=0
 EOM
 
-    db_get ipfs-kubo/system-wide || true
+    db_get ipfs-kubo/hardened || true
     if [[ "${RET}" == "true" ]]
     then
-        
-    else
+        db_set ipfs-kubo/system-wide "true" || true
+        cat << 'EOM' >> "${SYSTEMD_UNIT_PATH}"
+# Hardened mode
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+PrivateDevices=true
+DevicePolicy=closed
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+ProtectHostname=true
+PrivateTmp=true
+ProtectClock=true
+LockPersonality=true
+RestrictNamespaces=true
+RestrictRealtime=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged
+ProtectHome=true
+RemoveIPC=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+EOM
+        db_get ipfs-kubo/repository-directory || true
+        echo -e "ReadWritePaths=${RET}" >> "${SYSTEMD_UNIT_PATH}"
     fi
+    db_get ipfs-kubo/user-name || true
+    echo -e "User=${RET}" >> "${SYSTEMD_UNIT_PATH}"
+    echo -e "Group=${RET}" >> "${SYSTEMD_UNIT_PATH}"
 
-User=ipfs
-Group=ipfs
-
+    cat << 'EOM' >> "${SYSTEMD_UNIT_PATH}"
 [Install]
 WantedBy=default.target
+EOM
 
 }
 
