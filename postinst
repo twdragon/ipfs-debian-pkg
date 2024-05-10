@@ -1,15 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 source /usr/share/debconf/confmodule
 db_version 2.0
 
-#!/bin/sh
-
-set -e
-
 function generate_systemd_unit {
-    SYSTEMD_UNIT_PATH="/lib/systemd/system/ipfs.service"
-    IPFS_SERVICE_NAME="ipfs"
+    SYSTEMD_UNIT_PATH="$(systemd-path systemd-system-unit)/ipfs.service"
 
     cat << 'EOM' > "${SYSTEMD_UNIT_PATH}"
 [Unit]
@@ -141,35 +136,39 @@ EOM
 [Install]
 WantedBy=default.target
 EOM
+}
 
+function generate_userspace {
+    db_get ipfs-kubo/user-name || true
+    IPFS_USERNAME="${RET}"
+    IPFS_GROUPNAME="${RET}"
 }
 
 case "$1" in
     configure)
-        # Searching for instantiated templates
-        
-        # Generate and install the systemd unit file
-        systemctl enable $IPFS_SERVICE_NAME
-        systemctl start $IPFS_SERVICE_NAME
+        generate_systemd_unit
+        systemctl enable ipfs.service
+        systemctl start ipfs.service
     ;;
 
     upgrade)
+        generate_systemd_unit
         systemctl daemon-reload
-        systemctl restart $IPFS_SERVICE_NAME
+        systemctl restart ipfs.service
     ;;
 
     remove|deconfigure)
         # Stop the IPFS service and remove the systemd unit file
-        systemctl stop $IPFS_SERVICE_NAME
-        systemctl disable $IPFS_SERVICE_NAME
-        rm -f $SYSTEMD_UNIT_PATH
+        systemctl stop ipfs.service
+        systemctl disable ipfs.service
+        rm -f "$(systemd-path systemd-system-unit)/ipfs.service"
     ;;
 
     purge)
         # Purge all related files and directories
-        systemctl stop $IPFS_SERVICE_NAME
-        systemctl disable $IPFS_SERVICE_NAME
-        rm -f $SYSTEMD_UNIT_PATH
+        systemctl stop ipfs.service
+        systemctl disable ipfs.service
+        rm -f "$(systemd-path systemd-system-unit)/ipfs.service"
         # Add commands to remove any additional IPFS-related files and directories
         # Example: rm -rf /var/lib/ipfs
     ;;
