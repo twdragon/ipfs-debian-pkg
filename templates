@@ -31,7 +31,11 @@ Description: Install IPFS Kubo system-wide?
  If you don't want to install Kubo system-wide, please select NO or FALSE here
  and indicate the username for which you want to make IPFS commands available.
  Otherwise, the system user with the name 'ipfs' will be created, and all the
- commands will be aliased in /etc/profile.d/ipfs using sudo.
+ commands will be available for the users who are added in 'ipfs' group.
+ .
+ NOTE: If the non-system username does not exist, the user account will be
+ created without a password! You should then select a proper password for this
+ new user and adjust the security rules for him properly.
 
 Template: ipfs-kubo/user-name
 Type: select
@@ -106,6 +110,8 @@ Description: Do you want to remove also the repository directory?
  CAUTION! It will remove all the data you had stored in your IPFS repository
  before without a possibility to recover them or to restore your repository
  in the binary identical way!
+ .
+ NOTE: This parameter will be ignored unless Kubo is installed system-wide
 
 Template: ipfs-kubo/config-purge
 Type: boolean
@@ -113,4 +119,6 @@ Default: false
 Description: Do you want to remove also the previous daemon config?
  CAUTION! It will remove all the setup you had made before, so to install IPFS
  Kubo again you will be in need to write the new config file from scratch.
+ .
+ NOTE: This parameter will be ignored unless Kubo is installed system-wide
 

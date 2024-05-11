@@ -3,7 +3,16 @@ set -e
 source /usr/share/debconf/confmodule
 db_version 2.0
 
-if [[ "${1}" == "purge" ]]
+IPFS_SYSTEMD_UNIT="$(systemd-path systemd-system-unit)/ipfs.service"
+if [[ -f "${IPFS_SYSTEMD_UNIT}" ]]
+then
+    rm -f "${IPFS_SYSTEMD_UNIT}" || true
+fi
+
+db_get ipfs-kubo/system-wide || true
+IPFS_SYSTEMWIDE="${RET}"
+
+if [[ "${1}" == "purge" && "${IPFS_SYSTEMWIDE}" == "true" ]]
 then
     db_input critical ipfs-kubo/repository-purge || true
     db_input critical ipfs-kubo/config-purge || true
@@ -19,6 +28,15 @@ then
     then
         db_get ipfs-kubo/predefined-config || true
         rm -f "${RET}"
+    fi
+    db_get ipfs-kubo/user-name
+    if [[ id "${RET}" &>/dev/null ]]
+    then
+        deluser --system --remove-home "${RET}"
+    fi
+    if [[ getent group "ipfs" &>/dev/null ]]
+    then
+        delgroup --system --only-if-empty "ipfs"
     fi
     db_purge || true
 fi

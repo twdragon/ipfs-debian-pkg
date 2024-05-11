@@ -4,7 +4,11 @@ source /usr/share/debconf/confmodule
 db_version 2.0
 
 function generate_systemd_unit {
-    SYSTEMD_UNIT_PATH="$(systemd-path systemd-system-unit)/ipfs.service"
+    local SYSTEMD_UNIT_PATH="$(systemd-path systemd-system-unit)/ipfs.service"
+    if [[ -f "${SYSTEMD_UNIT_PATH}" ]]
+    then
+        cp -f "${SYSTEMD_UNIT_PATH}" /usr/share/ipfs/ipfs.service.bak
+    fi
 
     cat << 'EOM' > "${SYSTEMD_UNIT_PATH}"
 [Unit]
@@ -140,13 +144,45 @@ EOM
 
 function generate_userspace {
     db_get ipfs-kubo/user-name || true
-    IPFS_USERNAME="${RET}"
-    IPFS_GROUPNAME="${RET}"
+    local IPFS_USERNAME="${RET}"
+    local IPFS_GROUPNAME="ipfs"
+    db_get ipfs-kubo/system-wide || true
+    local IPFS_SYSTEMUSER="${RET}"
+    db_get ipfs-kubo/repository-directory || true
+    local IPFS_REPOSITORY="${RET}"
+    if [[ ! getent group "${IPFS_GROUPNAME}" &>/dev/null ]]
+    then
+        if [[ "${IPFS_SYSTEMUSER}" == "true" ]]
+        then
+            addgroup --system "${IPFS_GROUPNAME}"
+        else
+            addgroup "${IPFS_GROUPNAME}"
+        fi
+    fi
+    if [[ ! id "${IPFS_USERNAME}" &>/dev/null ]]
+    then
+        if [[ "${IPFS_SYSTEMUSER}" == "true" ]]
+        then
+            adduser --system --home "${IPFS_REPOSITORY}" --no-create-home --disabled-password --disabled-login --gecos "IPFS" --ingroup "${IPFS_GROUPNAME}" "${IPFS_USERNAME}"
+        else
+            adduser --home "${IPFS_REPOSITORY}" --no-create-home --gecos "IPFS" --ingroup "${IPFS_GROUPNAME}" "${IPFS_USERNAME}"
+        fi
+    else
+        usermod --append --groups "${IPFS_GROUPNAME}"
+    fi
+    if [[ ! -d "${IPFS_REPOSITORY}" ]]
+    then
+        mkdir -p "${IPFS_REPOSITORY}"
+        chown "${IPFS_USERNAME}":"${IPFS_GROUPNAME}" "${IPFS_REPOSITORY}"
+        chmod 770 "${IPFS_REPOSITORY}"
+    fi
 }
 
 case "$1" in
     configure)
         generate_systemd_unit
+        generate_userspace
+        systemctl daemon-reload
         systemctl enable ipfs.service
         systemctl start ipfs.service
     ;;
@@ -155,22 +191,6 @@ case "$1" in
         generate_systemd_unit
         systemctl daemon-reload
         systemctl restart ipfs.service
-    ;;
-
-    remove|deconfigure)
-        # Stop the IPFS service and remove the systemd unit file
-        systemctl stop ipfs.service
-        systemctl disable ipfs.service
-        rm -f "$(systemd-path systemd-system-unit)/ipfs.service"
-    ;;
-
-    purge)
-        # Purge all related files and directories
-        systemctl stop ipfs.service
-        systemctl disable ipfs.service
-        rm -f "$(systemd-path systemd-system-unit)/ipfs.service"
-        # Add commands to remove any additional IPFS-related files and directories
-        # Example: rm -rf /var/lib/ipfs
     ;;
 
     *)

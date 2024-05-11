@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+
+if [[ systemctl list-unit-files | grep -q "^ipfs" ]]
+then
+    if [[ systemctl is-active --quiet "ipfs" ]]
+    then
+        systemctl stop "ipfs"
+    fi
+fi
+
