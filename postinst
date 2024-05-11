@@ -176,6 +176,15 @@ function generate_userspace {
         chown "${IPFS_USERNAME}":"${IPFS_GROUPNAME}" "${IPFS_REPOSITORY}"
         chmod 770 "${IPFS_REPOSITORY}"
     fi
+    db_get ipfs-kubo/predefined-config || true
+    local IPFS_CONFIG="${RET}"
+    if [[ "${IPFS_CONFIG}" != "${IPFS_REPOSITORY}/config" ]]
+    then
+        touch "${IPFS_CONFIG}"
+        chown "${IPFS_USERNAME}":"${IPFS_GROUPNAME}" "${IPFS_CONFIG}"
+        chmod 770 "${IPFS_REPOSITORY}"
+        ln -f "${IPFS_CONFIG}" "${IPFS_REPOSITORY}/config"
+    fi
 }
 
 case "$1" in
