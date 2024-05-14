@@ -23,7 +23,7 @@ db_version 2.0
 config_mode="${1}"
 installed_version="${2}"
 ipfs_repo_dir="/var/ipfs"
-ipfs_config="/etc/ipfs"
+ipfs_config="/etc/default/ipfs"
 ipfs_username="ipfs"
 
 if [[ "${config_mode}" == "configure" ]] # Install from scratch

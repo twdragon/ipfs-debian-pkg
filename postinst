@@ -24,8 +24,6 @@ EOM
     echo -e "Environment=IPFS_PATH=${RET}" >> "${SYSTEMD_UNIT_PATH}"
     db_get ipfs-kubo/predefined-config || true
     echo -e "Environment=IPFS_CONFIG=${RET}" >> "${SYSTEMD_UNIT_PATH}"
-    db_get ipfs-kubo/predefined-config || true
-    echo -e "Environment=IPFS_CONFIG=${RET}" >> "${SYSTEMD_UNIT_PATH}"
     db_get ipfs-kubo/memory-quota || true
     MEMQUOTA="unlimited"
     MEMHIGH="unlimited"
@@ -170,6 +168,14 @@ function generate_userspace {
     else
         usermod --append --groups "${IPFS_GROUPNAME}"
     fi
+}
+
+function initialize_service {
+    db_get ipfs-kubo/user-name || true
+    local IPFS_USERNAME="${RET}"
+    local IPFS_GROUPNAME="ipfs"
+    db_get ipfs-kubo/repository-directory || true
+    local IPFS_REPOSITORY="${RET}"
     if [[ ! -d "${IPFS_REPOSITORY}" ]]
     then
         mkdir -p "${IPFS_REPOSITORY}"
@@ -180,17 +186,22 @@ function generate_userspace {
     local IPFS_CONFIG="${RET}"
     if [[ "${IPFS_CONFIG}" != "${IPFS_REPOSITORY}/config" ]]
     then
-        touch "${IPFS_CONFIG}"
-        chown "${IPFS_USERNAME}":"${IPFS_GROUPNAME}" "${IPFS_CONFIG}"
-        chmod 770 "${IPFS_REPOSITORY}"
-        ln -f "${IPFS_CONFIG}" "${IPFS_REPOSITORY}/config"
+        if [[ -f "${IPFS_CONFIG}" ]]
+        then
+            cp "${IPFS_CONFIG}" "${IPFS_REPOSITORY}/config"
+        else
+            touch "${IPFS_REPOSITORY}/config"
+        fi
     fi
+    chown -R "${IPFS_USERNAME}":"${IPFS_GROUPNAME}" "${IPFS_REPOSITORY}"
+    chmod -R 770 "${IPFS_REPOSITORY}"
 }
 
 case "$1" in
     configure)
         generate_systemd_unit
         generate_userspace
+        initialize_service
         systemctl daemon-reload
         systemctl enable ipfs.service
         systemctl start ipfs.service

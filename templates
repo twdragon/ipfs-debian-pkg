@@ -20,9 +20,17 @@ Description: The initial size of the IPFS repository database is set to 10 GiB.
 
 Template: ipfs-kubo/predefined-config
 Type: string
-Description: IPFS daemon configuration file:
+Description: IPFS daemon configuration backup file:
  If you have a predefined configuration file for your daemon, please list it
- here. In the case this file exists, the daemon will not try to regenerate it.
+ here. In the case this file exists, the daemon will copy it to the repository.
+ .
+ NOTE: the file will be COPIED, not linked or moved! Your specified config
+ will be used as a TEMPLATE to generate a NEW configuration! You should then
+ use the configuration file located INSIDE THE REPOSITORY to configure your
+ IPFS node.
+ .
+ NOTE: when Kubo will be removed, this file will be replaced with a backup of
+ your current configuration file.
 
 Template: ipfs-kubo/system-wide
 Type: boolean
@@ -116,9 +124,10 @@ Description: Do you want to remove also the repository directory?
 Template: ipfs-kubo/config-purge
 Type: boolean
 Default: false
-Description: Do you want to remove also the previous daemon config?
+Description: Do you want to remove also the previous configuration backup?
  CAUTION! It will remove all the setup you had made before, so to install IPFS
- Kubo again you will be in need to write the new config file from scratch.
+ Kubo again you will be in need to write the new configuration file from
+ scratch.
  .
  NOTE: This parameter will be ignored unless Kubo is installed system-wide
 
