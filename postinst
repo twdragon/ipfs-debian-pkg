@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 source /usr/share/debconf/confmodule
 db_version 2.0
@@ -62,7 +62,7 @@ EOM
     esac
     if [[ "${MEMQUOTA}" != "unlimited" ]]
     then
-        cat << 'EOM' >> "${SYSTEMD_UNIT_PATH}"
+        tee --append "${SYSTEMD_UNIT_PATH}" > /dev/null << EOM
 # Memory accounting: Golang
 Environment=GOMEMLIMIT=${MEMQUOTA}
 # Memory accounting: systemd
@@ -77,7 +77,7 @@ EOM
     if [[ "${RET}" != "unlimited" ]]
     then
         CPUQUOTA=$(("${RET}" * 100))
-        cat << 'EOM' >> "${SYSTEMD_UNIT_PATH}"
+        tee --append "${SYSTEMD_UNIT_PATH}" > /dev/null << EOM
 # CPU accounting: systemd
 CPUAccounting=true
 CPUQuota=${CPUQUOTA}
@@ -88,7 +88,7 @@ EOM
     cat << 'EOM' >> "${SYSTEMD_UNIT_PATH}"
 #Runtime
 TimeoutStartSec=600
-ExecStart=/util/bin/ipfs daemon --migrate --enable-gc
+ExecStart=/usr/bin/ipfs daemon --migrate --enable-gc
 TimeoutSec=120
 Restart=on-failure
 RestartSec=120
@@ -148,7 +148,11 @@ function generate_userspace {
     local IPFS_SYSTEMUSER="${RET}"
     db_get ipfs-kubo/repository-directory || true
     local IPFS_REPOSITORY="${RET}"
-    if [[ ! getent group "${IPFS_GROUPNAME}" &>/dev/null ]]
+    if [[ ! -d "${IPFS_REPOSITORY}" ]]
+    then
+        mkdir -p "${IPFS_REPOSITORY}"
+    fi
+    if ! getent group "${IPFS_GROUPNAME}" &>/dev/null 
     then
         if [[ "${IPFS_SYSTEMUSER}" == "true" ]]
         then
@@ -157,7 +161,7 @@ function generate_userspace {
             addgroup "${IPFS_GROUPNAME}"
         fi
     fi
-    if [[ ! id "${IPFS_USERNAME}" &>/dev/null ]]
+    if ! id "${IPFS_USERNAME}" &>/dev/null 
     then
         if [[ "${IPFS_SYSTEMUSER}" == "true" ]]
         then
@@ -166,7 +170,7 @@ function generate_userspace {
             adduser --home "${IPFS_REPOSITORY}" --no-create-home --gecos "IPFS" --ingroup "${IPFS_GROUPNAME}" "${IPFS_USERNAME}"
         fi
     else
-        usermod --append --groups "${IPFS_GROUPNAME}"
+        usermod --append --groups "${IPFS_GROUPNAME}" "${IPFS_USERNAME}"
     fi
 }
 
@@ -176,10 +180,9 @@ function initialize_service {
     local IPFS_GROUPNAME="ipfs"
     db_get ipfs-kubo/repository-directory || true
     local IPFS_REPOSITORY="${RET}"
-    if [[ ! -d "${IPFS_REPOSITORY}" ]]
+    if [[ -d "${IPFS_REPOSITORY}" ]]
     then
-        mkdir -p "${IPFS_REPOSITORY}"
-        chown "${IPFS_USERNAME}":"${IPFS_GROUPNAME}" "${IPFS_REPOSITORY}"
+        chown -R "${IPFS_USERNAME}":"${IPFS_GROUPNAME}" "${IPFS_REPOSITORY}"
         chmod 770 "${IPFS_REPOSITORY}"
     fi
     db_get ipfs-kubo/predefined-config || true
@@ -189,12 +192,21 @@ function initialize_service {
         if [[ -f "${IPFS_CONFIG}" ]]
         then
             cp "${IPFS_CONFIG}" "${IPFS_REPOSITORY}/config"
-        else
-            touch "${IPFS_REPOSITORY}/config"
         fi
     fi
     chown -R "${IPFS_USERNAME}":"${IPFS_GROUPNAME}" "${IPFS_REPOSITORY}"
     chmod -R 770 "${IPFS_REPOSITORY}"
+    db_get ipfs-kubo/network-profile || true
+    local IPFS_NETWORK_PROFILE="${RET}"
+    if [[ ! -f "${IPFS_REPOSITORY}/config" ]]
+    then
+        IPFS_PATH="${IPFS_REPOSITORY}" HOME="${IPFS_REPOSITORY}" su -g "${IPFS_GROUPNAME}" --preserve-environment -c "ipfs init --algorithm ed25519 --profile default-datastore,${IPFS_NETWORK_PROFILE}" ${IPFS_USERNAME}
+        cp "${IPFS_REPOSITORY}/config" "${IPFS_CONFIG}"
+        chown "${IPFS_USERNAME}":"${IPFS_GROUPNAME}" "${IPFS_CONFIG}"
+    else
+        mv "${IPFS_REPOSITORY}/config" "${IPFS_REPOSITORY}/config.bak"
+        IPFS_PATH="${IPFS_REPOSITORY}" HOME="${IPFS_REPOSITORY}" su -g "${IPFS_GROUPNAME}" --preserve-environment -c "ipfs init \"${IPFS_CONFIG}\"" ${IPFS_USERNAME}
+    fi
 }
 
 case "$1" in
@@ -202,15 +214,19 @@ case "$1" in
         generate_systemd_unit
         generate_userspace
         initialize_service
-        systemctl daemon-reload
-        systemctl enable ipfs.service
-        systemctl start ipfs.service
+        deb-systemd-helper enable ipfs.service
+        deb-systemd-invoke start ipfs.service
     ;;
 
     upgrade)
         generate_systemd_unit
-        systemctl daemon-reload
-        systemctl restart ipfs.service
+        deb-systemd-invoke restart ipfs.service
+    ;;
+    
+    abort-upgrade)
+        generate_systemd_unit
+        initialize_service
+        deb-systemd-invoke restart ipfs.service
     ;;
 
     *)

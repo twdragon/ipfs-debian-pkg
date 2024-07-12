@@ -1,6 +1,7 @@
 ipfs-kubo (0.27.0) UNRELEASED; urgency=low
 
-  [ Andrey Vukolov ]
-  * Actual changelog is https://github.com/twdragon/kubo/blob/master/docs/changelogs/v0.27.md
+  [ IPFS Development Team and Contributors ]
+  * Actual changelog is 
+    https://github.com/twdragon/kubo/blob/master/docs/changelogs/v0.27.md
 
- -- Andrey Vukolov <andrey.vukolov@elettra.eu>  Sat, 23 Mar 2024 18:48:06 +0200
+ -- Andrey Vukolov <andrey.vukolov@elettra.eu>  Fri, 12 Jul 2024 18:48:06 +0200

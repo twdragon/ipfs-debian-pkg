@@ -17,7 +17,7 @@ build:
 	make build
 
 %:
-	dh $@
+	dh $@ --with bash-completion
 
 override_dh_builddeb:
 	dh_builddeb -- -Zgzip
@@ -31,4 +31,6 @@ override_dh_auto_clean:
 override_dh_auto_install:
 	echo 'DH_AUTO_INSTALL overridden'
 
+override_dh_installsystemd:
+	dh_installsystemd --name=ipfs ipfs.service
 

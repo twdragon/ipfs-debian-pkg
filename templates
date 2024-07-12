@@ -9,14 +9,14 @@ Description: IPFS repository directory:
 
 Template: ipfs-kubo/repository-size-note
 Type: note
-Description: The initial size of the IPFS repository database is set to 10 GiB.
+Description: Initial size of the IPFS repository - 10GiB
  The repository size is one of the most important parameters you should define
  for your IPFS node, because the amount of data you will be able to share using
  your node depends from it entirely. The installation script does not set this
  parameter for you explicitly, so please edit directly your configuration file
  to set it up! The default value of 10 GiB is defined in Kubo's source code,
  and it is a subject to change in the future, so please take care of it and
- edit your config file thoroughly!
+ edit your configuration file thoroughly!
 
 Template: ipfs-kubo/predefined-config
 Type: string
