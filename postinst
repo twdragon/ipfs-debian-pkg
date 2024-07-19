@@ -172,6 +172,23 @@ function generate_userspace {
     else
         usermod --append --groups "${IPFS_GROUPNAME}" "${IPFS_USERNAME}"
     fi
+    if [[ "${IPFS_SYSTEMUSER}" == "true" ]]
+    then
+        touch /etc/profile.d/ipfs.sh
+        tee --append /etc/profile.d/ipfs.sh > /dev/null << EOM
+# Please add your user to the ipfs group to make him able to execute
+# IPFS commands
+export IPFS_PATH="${IPFS_REPOSITORY}"
+EOM
+    else
+        local USER_PROFILE_SCRIPT="$(getent passwd ${IPFS_USERNAME} | cut -d: -f6)/.profile"
+        if ! grep -q "IPFS_PATH" "${USER_PROFILE_SCRIPT}"
+        then
+            tee --append "${USER_PROFILE_SCRIPT}" > /dev/null << EOM
+export IPFS_PATH="${IPFS_REPOSITORY}"
+EOM
+        fi
+    fi
 }
 
 function initialize_service {

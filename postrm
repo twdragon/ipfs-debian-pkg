@@ -5,6 +5,22 @@ db_version 2.0
 
 db_get ipfs-kubo/system-wide || true
 IPFS_SYSTEMWIDE="${RET}"
+db_get ipfs-kubo/user-name || true
+IPFS_USERNAME="${RET}"
+
+if [[ "${1}" == "remove" || "${1}" == "purge" ]]
+then
+    if [[ "${IPFS_SYSTEMWIDE}" == "true" ]]
+    then
+        if [[ -f /etc/profile.d/ipfs.sh ]]
+        then
+            rm /etc/profile.d/ipfs.sh
+        fi
+    else
+        USER_PROFILE_SCRIPT="$(getent passwd ${IPFS_USERNAME} | cut -d: -f6)/.profile"
+        sed -i -e '/^.*export\ *IPFS\_PATH=/d'
+    fi
+fi
 
 if [[ "${1}" == "purge" && "${IPFS_SYSTEMWIDE}" == "true" ]]
 then
