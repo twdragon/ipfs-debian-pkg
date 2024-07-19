@@ -189,7 +189,7 @@ function initialize_service {
     local IPFS_CONFIG="${RET}"
     if [[ "${IPFS_CONFIG}" != "${IPFS_REPOSITORY}/config" ]]
     then
-        if [[ -f "${IPFS_CONFIG}" ]]
+        if [[ -f "${IPFS_CONFIG}" && ! -f "${IPFS_REPOSITORY}/config" ]]
         then
             cp "${IPFS_CONFIG}" "${IPFS_REPOSITORY}/config"
         fi
@@ -211,11 +211,18 @@ function initialize_service {
 
 case "$1" in
     configure)
-        generate_systemd_unit
-        generate_userspace
-        initialize_service
-        deb-systemd-helper enable ipfs.service
-        deb-systemd-invoke start ipfs.service
+        if [[ -z "${2}" ]]
+        then
+            generate_systemd_unit
+            generate_userspace
+            initialize_service
+            deb-systemd-helper enable ipfs.service
+            deb-systemd-invoke start ipfs.service
+        else
+            generate_systemd_unit
+            deb-systemd-helper reenable ipfs.service
+            deb-systemd-invoke start ipfs.service
+        fi
     ;;
 
     upgrade)
@@ -224,9 +231,7 @@ case "$1" in
     ;;
     
     abort-upgrade)
-        generate_systemd_unit
-        initialize_service
-        deb-systemd-invoke restart ipfs.service
+        deb-systemd-invoke stop ipfs.service
     ;;
 
     *)

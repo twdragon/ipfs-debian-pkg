@@ -1052,7 +1052,7 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
 done
 
 if [[ "${word}" == -* ]]; then
-_ipfs_compgen -W $'--disable-transport-encryption \n--enable-gc \n--enable-mplex-experiment \n--enable-namesys-pubsub \n--enable-pubsub-experiment \n--init \n--manage-fdlimit \n--migrate \n--mount \n--unrestricted-api \n--writable \n' -- "${word}"
+_ipfs_compgen -W $'--disable-transport-encryption \n--enable-gc \n--enable-mplex-experiment \n--enable-namesys-pubsub \n--enable-pubsub-experiment \n--init \n--manage-fdlimit \n--migrate \n--mount \n--unrestricted-api \n' -- "${word}"
 _ipfs_compgen -S = -W $'--agent-version-suffix\n--init-config\n--init-profile\n--mount-ipfs\n--mount-ipns\n--routing\n' -- "${word}"
 return 0
 fi
@@ -1292,8 +1292,6 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
 done
 
 if [[ "${word}" == -* ]]; then
-_ipfs_compgen -W $'-v \n' -- "${word}"
-_ipfs_compgen -W $'--verbose \n' -- "${word}"
 return 0
 fi
 
@@ -1321,10 +1319,6 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
 done
 
 if [[ "${word}" == -* ]]; then
-_ipfs_compgen -W $'-v \n' -- "${word}"
-_ipfs_compgen -S = -W $'-n\n' -- "${word}"
-_ipfs_compgen -W $'--verbose \n' -- "${word}"
-_ipfs_compgen -S = -W $'--num-providers\n' -- "${word}"
 return 0
 fi
 
@@ -1379,8 +1373,6 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
 done
 
 if [[ "${word}" == -* ]]; then
-_ipfs_compgen -W $'-r \n-v \n' -- "${word}"
-_ipfs_compgen -W $'--recursive \n--verbose \n' -- "${word}"
 return 0
 fi
 
@@ -1408,7 +1400,6 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
 done
 
 if [[ "${word}" == -* ]]; then
-_ipfs_compgen -W $'--allow-offline \n' -- "${word}"
 return 0
 fi
 
@@ -1640,93 +1631,6 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
 done
 if [[ "${argidx}" -eq 0 ]]; then
     _ipfs_compgen -W $'cmds \nprofile \nsys \n' -- "${word}"
-fi
-
-	    return 0
-            ;;
-    
-	"dns")
-	    let index++
-	    
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    case "${COMP_WORDS[index]}" in
-        -*)
-	    let index++
-            continue
-	    ;;
-    
-    esac
-    break
-done
-
-if [[ "${word}" == -* ]]; then
-_ipfs_compgen -W $'-r \n' -- "${word}"
-_ipfs_compgen -W $'--recursive \n' -- "${word}"
-return 0
-fi
-
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    if [[ "${COMP_WORDS[index]}" != -* ]]; then
-        let argidx++
-    fi
-    let index++
-done
-	    return 0
-            ;;
-    
-	"file")
-	    let index++
-	    
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    case "${COMP_WORDS[index]}" in
-        -*)
-	    let index++
-            continue
-	    ;;
-    
-	"ls")
-	    let index++
-	    
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    case "${COMP_WORDS[index]}" in
-        -*)
-	    let index++
-            continue
-	    ;;
-    
-    esac
-    break
-done
-
-if [[ "${word}" == -* ]]; then
-return 0
-fi
-
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    if [[ "${COMP_WORDS[index]}" != -* ]]; then
-        let argidx++
-    fi
-    let index++
-done
-	    return 0
-            ;;
-    
-    esac
-    break
-done
-
-if [[ "${word}" == -* ]]; then
-return 0
-fi
-
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    if [[ "${COMP_WORDS[index]}" != -* ]]; then
-        let argidx++
-    fi
-    let index++
-done
-if [[ "${argidx}" -eq 0 ]]; then
-    _ipfs_compgen -W $'ls \n' -- "${word}"
 fi
 
 	    return 0
@@ -3183,7 +3087,6 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
 done
 
 if [[ "${word}" == -* ]]; then
-_ipfs_compgen -S = -W $'--data-encoding\n' -- "${word}"
 return 0
 fi
 
@@ -3211,8 +3114,6 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
 done
 
 if [[ "${word}" == -* ]]; then
-_ipfs_compgen -W $'-v \n' -- "${word}"
-_ipfs_compgen -W $'--headers \n' -- "${word}"
 return 0
 fi
 
@@ -3409,9 +3310,6 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
 done
 
 if [[ "${word}" == -* ]]; then
-_ipfs_compgen -W $'-q \n' -- "${word}"
-_ipfs_compgen -W $'--pin \n--quiet \n' -- "${word}"
-_ipfs_compgen -S = -W $'--datafieldenc\n--inputenc\n' -- "${word}"
 return 0
 fi
 
@@ -3439,7 +3337,6 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
 done
 
 if [[ "${word}" == -* ]]; then
-_ipfs_compgen -W $'--human \n' -- "${word}"
 return 0
 fi
 
@@ -3736,7 +3633,9 @@ done
 
 if [[ "${word}" == -* ]]; then
 _ipfs_compgen -W $'-r \n' -- "${word}"
+_ipfs_compgen -S = -W $'-n\n' -- "${word}"
 _ipfs_compgen -W $'--progress \n--recursive \n' -- "${word}"
+_ipfs_compgen -S = -W $'--name\n' -- "${word}"
 return 0
 fi
 
@@ -3764,9 +3663,9 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
 done
 
 if [[ "${word}" == -* ]]; then
-_ipfs_compgen -W $'-q \n-s \n' -- "${word}"
+_ipfs_compgen -W $'-n \n-q \n-s \n' -- "${word}"
 _ipfs_compgen -S = -W $'-t\n' -- "${word}"
-_ipfs_compgen -W $'--quiet \n--stream \n' -- "${word}"
+_ipfs_compgen -W $'--names \n--quiet \n--stream \n' -- "${word}"
 _ipfs_compgen -S = -W $'--type\n' -- "${word}"
 return 0
 fi
@@ -4356,33 +4255,6 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
             continue
 	    ;;
     
-	"fsck")
-	    let index++
-	    
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    case "${COMP_WORDS[index]}" in
-        -*)
-	    let index++
-            continue
-	    ;;
-    
-    esac
-    break
-done
-
-if [[ "${word}" == -* ]]; then
-return 0
-fi
-
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    if [[ "${COMP_WORDS[index]}" != -* ]]; then
-        let argidx++
-    fi
-    let index++
-done
-	    return 0
-            ;;
-    
 	"gc")
 	    let index++
 	    
@@ -4567,7 +4439,7 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
     let index++
 done
 if [[ "${argidx}" -eq 0 ]]; then
-    _ipfs_compgen -W $'fsck \ngc \nls \nmigrate \nstat \nverify \nversion \n' -- "${word}"
+    _ipfs_compgen -W $'gc \nls \nmigrate \nstat \nverify \nversion \n' -- "${word}"
 fi
 
 	    return 0
@@ -5402,91 +5274,6 @@ fi
 	    return 0
             ;;
     
-	"tar")
-	    let index++
-	    
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    case "${COMP_WORDS[index]}" in
-        -*)
-	    let index++
-            continue
-	    ;;
-    
-	"add")
-	    let index++
-	    
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    case "${COMP_WORDS[index]}" in
-        -*)
-	    let index++
-            continue
-	    ;;
-    
-    esac
-    break
-done
-
-if [[ "${word}" == -* ]]; then
-return 0
-fi
-
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    if [[ "${COMP_WORDS[index]}" != -* ]]; then
-        let argidx++
-    fi
-    let index++
-done
-	    return 0
-            ;;
-    
-	"cat")
-	    let index++
-	    
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    case "${COMP_WORDS[index]}" in
-        -*)
-	    let index++
-            continue
-	    ;;
-    
-    esac
-    break
-done
-
-if [[ "${word}" == -* ]]; then
-return 0
-fi
-
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    if [[ "${COMP_WORDS[index]}" != -* ]]; then
-        let argidx++
-    fi
-    let index++
-done
-	    return 0
-            ;;
-    
-    esac
-    break
-done
-
-if [[ "${word}" == -* ]]; then
-return 0
-fi
-
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    if [[ "${COMP_WORDS[index]}" != -* ]]; then
-        let argidx++
-    fi
-    let index++
-done
-if [[ "${argidx}" -eq 0 ]]; then
-    _ipfs_compgen -W $'add \ncat \n' -- "${word}"
-fi
-
-	    return 0
-            ;;
-    
 	"update")
 	    let index++
 	    
@@ -5511,66 +5298,6 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
     fi
     let index++
 done
-	    return 0
-            ;;
-    
-	"urlstore")
-	    let index++
-	    
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    case "${COMP_WORDS[index]}" in
-        -*)
-	    let index++
-            continue
-	    ;;
-    
-	"add")
-	    let index++
-	    
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    case "${COMP_WORDS[index]}" in
-        -*)
-	    let index++
-            continue
-	    ;;
-    
-    esac
-    break
-done
-
-if [[ "${word}" == -* ]]; then
-_ipfs_compgen -W $'-t \n' -- "${word}"
-_ipfs_compgen -W $'--pin \n--trickle \n' -- "${word}"
-return 0
-fi
-
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    if [[ "${COMP_WORDS[index]}" != -* ]]; then
-        let argidx++
-    fi
-    let index++
-done
-	    return 0
-            ;;
-    
-    esac
-    break
-done
-
-if [[ "${word}" == -* ]]; then
-return 0
-fi
-
-while [[ ${index} -lt ${COMP_CWORD} ]]; do
-    if [[ "${COMP_WORDS[index]}" != -* ]]; then
-        let argidx++
-    fi
-    let index++
-done
-if [[ "${argidx}" -eq 0 ]]; then
-    _ipfs_compgen -W $'add \n' -- "${word}"
-fi
-
 	    return 0
             ;;
     
@@ -5653,7 +5380,7 @@ while [[ ${index} -lt ${COMP_CWORD} ]]; do
     let index++
 done
 if [[ "${argidx}" -eq 0 ]]; then
-    _ipfs_compgen -W $'add \nbitswap \nblock \nbootstrap \ncat \ncid \ncommands \nconfig \ndaemon \ndag \ndht \ndiag \ndns \nfile \nfiles \nfilestore \nget \nid \ninit \nkey \nlog \nls \nmount \nmultibase \nname \nobject \np2p \npin \nping \npubsub \nrefs \nrepo \nresolve \nrouting \nshutdown \nstats \nswarm \ntar \nupdate \nurlstore \nversion \n' -- "${word}"
+    _ipfs_compgen -W $'add \nbitswap \nblock \nbootstrap \ncat \ncid \ncommands \nconfig \ndaemon \ndag \ndht \ndiag \nfiles \nfilestore \nget \nid \ninit \nkey \nlog \nls \nmount \nmultibase \nname \nobject \np2p \npin \nping \npubsub \nrefs \nrepo \nresolve \nrouting \nshutdown \nstats \nswarm \nupdate \nversion \n' -- "${word}"
 fi
 
 }
