@@ -15,27 +15,24 @@ LC_TIME=en_US.UTF-8 ./debian/mkchangelog ./debian/changelog
 
 Please review thorougly if you really need to update the Debian changelog. The script has a proactive protection against version duplicates.
 
-## Updating Bash completion script
-Unfortunately, Debian maintainer scripts don't support dynamic generation of bash completion scenarios. Then, to update the scenario before building the package, the maintainer needs to run the freshly built (with `make build`) Kubo binary to regenerate the scenario:
-```bash
-./cmd/ipfs/ipfs commands completion bash > ./debian/ipfs-kubo.bash-completion
-```
-The command should be invoked from the **root Kubo repository**.
-
 ## Building Package
 Then maintainer should call the following command from the **root Kubo repository**:
 
 ```sh
-debuild --prepend-path=$GOROOT/bin -i -us -uc -b
+debuild --prepend-path=$GOROOT/bin
 ```
 where `$GOROOT` is the name of the root directory where Go is installed.
+
+**NOTE**: the build script may try to download and use Go distribution for the system's architecture, but this behaviour should be considered a fallback, and it is **not recommended** to rely on! In this case, the file [`go-version`](./go-version) contains the exact version string of Go distribution to be downloaded.
 
 ### Artifacts Retrieval
 The builder generates the following files, according to [Debian policies](https://www.debian.org/doc/debian-policy/):
 
+- `ipfs-kubo_<version>.dsc` - control sequence description with hashes.
+- `ipfs-kubo_<version>.tar.xz` - authoring archive containing source snapshot.
 - `ipfs-kubo_<version>_<arch>.build` - build commands log file.
 - `ipfs-kubo_<version>_<arch>.buildinfo` - involved software, checksums, environment and dependency info.
 - `ipfs-kubo_<version>_<arch>.changes` - stanardized changelog with checksum table.
-- `ipfs-kubo_<version>_<arch>.deb` - installation package file.
+- `ipfs-kubo_<version>_<arch>.deb` - binary installation package file.
 - `ipfs-kubo-dbgsym_<version>_<arch>.ddeb` - debug symbol package for the striped binary.
 

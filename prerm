@@ -11,3 +11,5 @@ db_get ipfs-kubo/predefined-config || true
 IPFS_CONFIG="${RET}"
 cp "${IPFS_REPOSITORY}/config" "${IPFS_CONFIG}"
 
+#DEBHELPER#
+

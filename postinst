@@ -80,7 +80,7 @@ EOM
         tee --append "${SYSTEMD_UNIT_PATH}" > /dev/null << EOM
 # CPU accounting: systemd
 CPUAccounting=true
-CPUQuota=${CPUQUOTA}
+CPUQuota=${CPUQUOTA}%
 EOM
     else
         echo -e "CPUAccounting=false" >> "${SYSTEMD_UNIT_PATH}"
@@ -257,5 +257,5 @@ case "$1" in
     ;;
 esac
 
-exit 0
+#DEBHELPER#
 
