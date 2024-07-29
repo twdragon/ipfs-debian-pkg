@@ -4,7 +4,7 @@ Priority: optional
 Standards-Version: 4.6.0
 Build-Depends: dpkg (>= 1.16.1), debhelper-compat (= 13), bash-completion, dh-sequence-bash-completion, sed (>= 4.0), gawk, curl, gcc (>= 7.0)
 Maintainer: IPFS Community & Contributors <info@ipfs.tech>
-Homepage: https://github.com/ipfs/kubo
+Homepage: https://ipfs.tech
 Vcs-Git: https://github.com/ipfs/kubo.git
 Rules-Requires-Root: no
 
