@@ -1,4 +1,4 @@
-ipfs-kubo (0.28.0~go1.22.2) jammy; urgency=low
+ipfs-kubo (0.28.0~go1.22.2+fix1.21) jammy; urgency=low
 
   [ IPFS Development Team and Contributors ]
   * github.com/ipfs/kubo:
