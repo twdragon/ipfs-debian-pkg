@@ -40,11 +40,6 @@ then
         db_get ipfs-kubo/predefined-config || true
         rm -f "${RET}"
     fi
-    db_get ipfs-kubo/user-name
-    if id "${RET}" &>/dev/null
-    then
-        deluser --system --remove-home "${RET}"
-    fi
     if getent group "ipfs" &>/dev/null 
     then
         delgroup --system --only-if-empty "ipfs"
