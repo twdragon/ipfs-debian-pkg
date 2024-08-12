@@ -6,6 +6,12 @@ MD_CHANGELOG_FILE=""
 TEMPLOG=$(mktemp)
 CHANGELOG_FILE="${1}"
 TIMESTAMP=$(date +"%a, %d %b %Y %H:%M:%S %z")
+DISTRO_CODENAME="UNRELEASED"
+
+if [[ ! -z "${2}" ]]
+then
+    DISTRO_CODENAME="${2}"
+fi
 
 if git describe --tags --exact-match > /dev/null 2>&1
 then
@@ -19,15 +25,15 @@ then
     MD_CHANGELOG_FILE="./docs/changelogs/$(echo -e "${TAG_STRING}" | grep -o -E 'v[0-9]+\.[0-9]+').md"
     if [[ ! -f "${MD_CHANGELOG_FILE}" ]]
     then
-        echo -e "ERROR! Changelog file ${CWD}/${MD_CHANGELOG_FILE} does not exist!"
+        echo -e "ERROR! Changelog file ${MD_CHANGELOG_FILE} does not exist!"
         exit 1
     fi
     tee "${TEMPLOG}" > /dev/null << EOM
-ipfs-kubo (${VERSION_STRING}) UNRELEASED; urgency=low
+ipfs-kubo (${VERSION_STRING}) ${DISTRO_CODENAME}; urgency=low
 
   [ IPFS Development Team and Contributors ]
 EOM
-    awk '/<details>/,/<\/details>/' "${MD_CHANGELOG_FILE}" | sed -n '/<details>/,/<\/details>/p' | sed 's/<details>//;s/<\/details>//' | sed '/<summary>/d' | sed '/^$/d' | sed -e 's/^-\ \+/\ \ \*\ /;s/^\ \+-\ \+/\ \ \ \ /' | sed -E 's/\(*\[(.*)\]\((.*)\)/ \2\1/g' | fmt -w 80 -s | tee --append "${TEMPLOG}" > /dev/null
+    awk '/<details>/,/<\/details>/' "${MD_CHANGELOG_FILE}" | sed -n '/<details>/,/<\/details>/p' | sed 's/<details>//;s/<\/details>//' | sed '/<summary>/d' | sed '/^$/d' | sed -e 's/^-\ \+/\ \ \*\ /;s/^\ \+-\ \+/\ \ \ \ /' | sed -E 's/\(*\[(.*)\]\((.*)\)./ \2\ \1/g' | fmt -w 80 -s | tee --append "${TEMPLOG}" > /dev/null
     tee --append "${TEMPLOG}" > /dev/null << EOM
   * Full changelog
     https://github.com/twdragon/kubo/blob/master/docs/changelogs/$(echo -e "${TAG_STRING}" | grep -o -E 'v[0-9]+\.[0-9]+').md
@@ -35,20 +41,73 @@ EOM
  -- IPFS Community & Contributors <info@ipfs.tech>  ${TIMESTAMP}
 
 EOM
-    if [[ -f "${CHANGELOG_FILE}" ]]
-    then
-        cat "${CHANGELOG_FILE}" >> "${TEMPLOG}"
-        DUPLICATES=$(grep -o -E '^ipfs-kubo\ *\([0-9]+\.[0-9]+\.[0-9]+\)' "${TEMPLOG}" | sort | uniq -d)
-        if [[ ! -z "${DUPLICATES}" ]]
-        then
-            echo 'ERROR! Version strings duplication detected! Please check the tag name you have checked out, and verify if you really need to update the Debian changelog.'
-            exit 1
-        fi
-    fi
     cat ${TEMPLOG} > "${CHANGELOG_FILE}"
 else
-    echo 'WARNING! The repository is not checked on the tag. The changelog file will not be generated!'
+    TAG_STRING=$(git describe --tags --abbrev=0)
+    COMMIT_LAST=$(git rev-parse --short HEAD)
+    CLEAR_VERSION_STRING=$(echo -e "${TAG_STRING}" | grep -o -E '[0-9]+\.[0-9]+\.[0-9]+')
+    MD_CHANGELOG_FILE="./docs/changelogs/$(echo -e "${TAG_STRING}" | grep -o -E 'v[0-9]+\.[0-9]+').md"
+    VERSION_STRING="${CLEAR_VERSION_STRING}+git${COMMIT_LAST}"
+    LAST_MESSAGES=$(git log ${TAG_STRING}..HEAD --pretty=format:"  * %s")
+    tee "${TEMPLOG}" > /dev/null << EOM
+ipfs-kubo (${VERSION_STRING}) ${DISTRO_CODENAME}; urgency=low
+
+  [ IPFS Development Team and Contributors ]
+EOM
+    echo "${LAST_MESSAGES}" | sed '/^$/d' | sed -e 's/^-\ \+/\ \ \*\ /;s/^\ \+-\ \+/\ \ \ \ /' | sed -E 's/\(*\[(.*)\]\((.*)\)./ \2\ \1/g' | fmt -w 80 -s | tee --append "${TEMPLOG}" > /dev/null
+    tee --append "${TEMPLOG}" > /dev/null << EOM
+  * END OF UNRELEASED CHANGES - Nightly build. Please use at your own risk!
+EOM
+    tee --append "${TEMPLOG}" > /dev/null << EOM
+    Please find the contents of the official changelog here:
+    https://github.com/twdragon/kubo/blob/master/docs/changelogs/$(echo -e "${TAG_STRING}" | grep -o -E 'v[0-9]+\.[0-9]+').md
+
+ -- IPFS Community & Contributors <info@ipfs.tech>  ${TIMESTAMP}
+
+EOM
+    tee --append "${TEMPLOG}" > /dev/null << EOM
+ipfs-kubo (${CLEAR_VERSION_STRING}) ${DISTRO_CODENAME}; urgency=low
+
+  [ IPFS Development Team and Contributors ]
+EOM
+    awk '/<details>/,/<\/details>/' "${MD_CHANGELOG_FILE}" | sed -n '/<details>/,/<\/details>/p' | sed 's/<details>//;s/<\/details>//' | sed '/<summary>/d' | sed '/^$/d' | sed -e 's/^-\ \+/\ \ \*\ /;s/^\ \+-\ \+/\ \ \ \ /' | sed -E 's/\(*\[(.*)\]\((.*)\)./ \2\ \1/g' | fmt -w 80 -s | tee --append "${TEMPLOG}" > /dev/null
+    tee --append "${TEMPLOG}" > /dev/null << EOM
+  * Full changelog
+    https://github.com/twdragon/kubo/blob/master/docs/changelogs/$(echo -e "${TAG_STRING}" | grep -o -E 'v[0-9]+\.[0-9]+').md
+
+ -- IPFS Community & Contributors <info@ipfs.tech>  ${TIMESTAMP}
+
+EOM
+    cat ${TEMPLOG} > "${CHANGELOG_FILE}"
 fi
+
+LAST_TAG=$(git describe --tags --abbrev=0)
+START_TAG="v0.20.0"
+RETROSPECTIVE_TAGS=$(git for-each-ref --sort=-creatordate --format='%(refname:short)' refs/tags | grep -A 1000000 "${LAST_TAG}" | grep -B 1000000 "${START_TAG}" | grep -v "${START_TAG}" | grep -v "${LAST_TAG}")
+for GIT_TAG in $RETROSPECTIVE_TAGS
+do
+    TAG_CREATED=$(git log -1 --format=%ct "${GIT_TAG}")
+    TAG_TIMESTAMP=$(date -d "@${TAG_CREATED}" +"%a, %d %b %Y %H:%M:%S %z")
+    if grep -q -E '\-.*$' <(echo "${GIT_TAG}")
+    then
+        VERSION_STRING=$(echo -e "${GIT_TAG}" | grep -o -E '[0-9]+\.[0-9]+\.[0-9]+')
+        MD_CHANGELOG_FILE="./docs/changelogs/$(echo -e "${GIT_TAG}" | grep -o -E 'v[0-9]+\.[0-9]+').md"
+        tee --append "${TEMPLOG}" > /dev/null << EOM
+ipfs-kubo (${VERSION_STRING}) ${DISTRO_CODENAME}; urgency=low
+
+  [ IPFS Development Team and Contributors ]
+EOM
+        awk '/<details>/,/<\/details>/' "${MD_CHANGELOG_FILE}" | sed -n '/<details>/,/<\/details>/p' | sed 's/<details>//;s/<\/details>//' | sed '/<summary>/d' | sed '/^$/d' | sed -e 's/^-\ \+/\ \ \*\ /;s/^\ \+-\ \+/\ \ \ \ /' | sed -E 's/\(*\[(.*)\]\((.*)\)./ \2\ \1/g' | fmt -w 80 -s | tee --append "${TEMPLOG}" > /dev/null
+        tee --append "${TEMPLOG}" > /dev/null << EOM
+  * Full changelog
+    https://github.com/twdragon/kubo/blob/master/docs/changelogs/$(echo -e "${GIT_TAG}" | grep -o -E 'v[0-9]+\.[0-9]+').md
+
+ -- IPFS Community & Contributors <info@ipfs.tech>  ${TAG_TIMESTAMP}
+
+EOM
+        cat ${TEMPLOG} > "${CHANGELOG_FILE}"
+    fi
+done
 
 trap 'rm -vf "${TEMPLOG}"' EXIT
 
