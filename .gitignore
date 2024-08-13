@@ -5,4 +5,5 @@ ipfs-kubo/
 *.log
 *.debhelper
 ipfs-kubo.bash-completion
+changelog
 
