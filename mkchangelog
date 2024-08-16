@@ -71,11 +71,13 @@ ipfs-kubo (${CLEAR_VERSION_STRING}) ${DISTRO_CODENAME}; urgency=low
   [ IPFS Development Team and Contributors ]
 EOM
     awk '/<details>/,/<\/details>/' "${MD_CHANGELOG_FILE}" | sed -n '/<details>/,/<\/details>/p' | sed 's/<details>//;s/<\/details>//' | sed '/<summary>/d' | sed '/^$/d' | sed -e 's/^-\ \+/\ \ \*\ /;s/^\ \+-\ \+/\ \ \ \ /' | sed -E 's/\(*\[(.*)\]\((.*)\)./ \2\ \1/g' | fmt -w 80 -s | tee --append "${TEMPLOG}" > /dev/null
+    TAG_CREATED=$(git log -1 --format=%ct "${TAG_STRING}")
+    TAG_TIMESTAMP=$(date -d "@${TAG_CREATED}" +"%a, %d %b %Y %H:%M:%S %z")
     tee --append "${TEMPLOG}" > /dev/null << EOM
   * Full changelog
     https://github.com/ipfs/kubo/blob/master/docs/changelogs/$(echo -e "${TAG_STRING}" | grep -o -E 'v[0-9]+\.[0-9]+').md
 
- -- IPFS Community & Contributors <info@ipfs.tech>  ${TIMESTAMP}
+ -- IPFS Community & Contributors <info@ipfs.tech>  ${TAG_TIMESTAMP}
 
 EOM
     cat ${TEMPLOG} > "${CHANGELOG_FILE}"
