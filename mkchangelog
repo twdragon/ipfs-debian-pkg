@@ -36,7 +36,7 @@ EOM
     awk '/<details>/,/<\/details>/' "${MD_CHANGELOG_FILE}" | sed -n '/<details>/,/<\/details>/p' | sed 's/<details>//;s/<\/details>//' | sed '/<summary>/d' | sed '/^$/d' | sed -e 's/^-\ \+/\ \ \*\ /;s/^\ \+-\ \+/\ \ \ \ /' | sed -E 's/\(*\[(.*)\]\((.*)\)./ \2\ \1/g' | fmt -w 80 -s | tee --append "${TEMPLOG}" > /dev/null
     tee --append "${TEMPLOG}" > /dev/null << EOM
   * Full changelog
-    https://github.com/twdragon/kubo/blob/master/docs/changelogs/$(echo -e "${TAG_STRING}" | grep -o -E 'v[0-9]+\.[0-9]+').md
+    https://github.com/ipfs/kubo/blob/master/docs/changelogs/$(echo -e "${TAG_STRING}" | grep -o -E 'v[0-9]+\.[0-9]+').md
 
  -- IPFS Community & Contributors <info@ipfs.tech>  ${TIMESTAMP}
 
@@ -60,7 +60,7 @@ EOM
 EOM
     tee --append "${TEMPLOG}" > /dev/null << EOM
     Please find the contents of the official changelog here:
-    https://github.com/twdragon/kubo/blob/master/docs/changelogs/$(echo -e "${TAG_STRING}" | grep -o -E 'v[0-9]+\.[0-9]+').md
+    https://github.com/ipfs/kubo/blob/master/docs/changelogs/$(echo -e "${TAG_STRING}" | grep -o -E 'v[0-9]+\.[0-9]+').md
 
  -- IPFS Community & Contributors <info@ipfs.tech>  ${TIMESTAMP}
 
@@ -73,7 +73,7 @@ EOM
     awk '/<details>/,/<\/details>/' "${MD_CHANGELOG_FILE}" | sed -n '/<details>/,/<\/details>/p' | sed 's/<details>//;s/<\/details>//' | sed '/<summary>/d' | sed '/^$/d' | sed -e 's/^-\ \+/\ \ \*\ /;s/^\ \+-\ \+/\ \ \ \ /' | sed -E 's/\(*\[(.*)\]\((.*)\)./ \2\ \1/g' | fmt -w 80 -s | tee --append "${TEMPLOG}" > /dev/null
     tee --append "${TEMPLOG}" > /dev/null << EOM
   * Full changelog
-    https://github.com/twdragon/kubo/blob/master/docs/changelogs/$(echo -e "${TAG_STRING}" | grep -o -E 'v[0-9]+\.[0-9]+').md
+    https://github.com/ipfs/kubo/blob/master/docs/changelogs/$(echo -e "${TAG_STRING}" | grep -o -E 'v[0-9]+\.[0-9]+').md
 
  -- IPFS Community & Contributors <info@ipfs.tech>  ${TIMESTAMP}
 
@@ -100,7 +100,7 @@ EOM
         awk '/<details>/,/<\/details>/' "${MD_CHANGELOG_FILE}" | sed -n '/<details>/,/<\/details>/p' | sed 's/<details>//;s/<\/details>//' | sed '/<summary>/d' | sed '/^$/d' | sed -e 's/^-\ \+/\ \ \*\ /;s/^\ \+-\ \+/\ \ \ \ /' | sed -E 's/\(*\[(.*)\]\((.*)\)./ \2\ \1/g' | fmt -w 80 -s | tee --append "${TEMPLOG}" > /dev/null
         tee --append "${TEMPLOG}" > /dev/null << EOM
   * Full changelog
-    https://github.com/twdragon/kubo/blob/master/docs/changelogs/$(echo -e "${GIT_TAG}" | grep -o -E 'v[0-9]+\.[0-9]+').md
+    https://github.com/ipfs/kubo/blob/master/docs/changelogs/$(echo -e "${GIT_TAG}" | grep -o -E 'v[0-9]+\.[0-9]+').md
 
  -- IPFS Community & Contributors <info@ipfs.tech>  ${TAG_TIMESTAMP}
 
