@@ -1,0 +1,261 @@
+#!/bin/bash
+set -e
+source /usr/share/debconf/confmodule
+db_version 2.0
+
+function generate_systemd_unit {
+    local SYSTEMD_UNIT_PATH="$(systemd-path systemd-system-unit)/ipfs.service"
+    if [[ -f "${SYSTEMD_UNIT_PATH}" ]]
+    then
+        cp -f "${SYSTEMD_UNIT_PATH}" /usr/share/ipfs/ipfs.service.bak
+    fi
+
+    cat << 'EOM' > "${SYSTEMD_UNIT_PATH}"
+[Unit]
+Description=IPFS single node control service - P2P distributed content-based CDN with file frontend
+Documentation=https://docs.ipfs.io/
+After=syslog.target network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=notify
+EOM
+
+    db_get ipfs-kubo/repository-directory || true
+    echo -e "Environment=IPFS_PATH=${RET}" >> "${SYSTEMD_UNIT_PATH}"
+    db_get ipfs-kubo/predefined-config || true
+    echo -e "Environment=IPFS_CONFIG=${RET}" >> "${SYSTEMD_UNIT_PATH}"
+    db_get ipfs-kubo/memory-quota || true
+    MEMQUOTA="unlimited"
+    MEMHIGH="unlimited"
+    case "${RET}" in
+        512MiB)
+            MEMQUOTA=536870912
+            MEMHIGH=402653184 # 384MiB
+        ;;
+        1GiB)
+            MEMQUOTA=1073741824
+            MEMHIGH=805306368 # 768MiB
+        ;;
+        2GiB)
+            MEMQUOTA=2147483648
+            MEMHIGH=1879048192 # 1.75GiB
+        ;;
+        4GiB)
+            MEMQUOTA=4294967296
+            MEMHIGH=3221225472 # 3GiB
+        ;;
+        6GiB)
+            MEMQUOTA=6442450944
+            MEMHIGH=5368709120 # 5GiB
+        ;;
+        8GiB)
+            MEMQUOTA=8589934592
+            MEMHIGH=7516192768 # 7GiB
+        ;;
+        12GiB)
+            MEMQUOTA=12884901888
+            MEMHIGH=10737418240 # 10GiB
+        ;;
+        *)
+            MEMQUOTA="unlimited"
+        ;;
+    esac
+    if [[ "${MEMQUOTA}" != "unlimited" ]]
+    then
+        tee --append "${SYSTEMD_UNIT_PATH}" > /dev/null << EOM
+# Memory accounting: Golang
+Environment=GOMEMLIMIT=${MEMQUOTA}
+# Memory accounting: systemd
+MemoryAccounting=true
+MemoryHigh=${MEMHIGH}
+MemoryMax=${MEMQUOTA}
+EOM
+    else
+        echo -e "MemoryAccounting=false" >> "${SYSTEMD_UNIT_PATH}"
+    fi
+    db_get ipfs-kubo/cpu-quota || true
+    if [[ "${RET}" != "unlimited" ]]
+    then
+        CPUQUOTA=$(("${RET}" * 100))
+        tee --append "${SYSTEMD_UNIT_PATH}" > /dev/null << EOM
+# CPU accounting: systemd
+CPUAccounting=true
+CPUQuota=${CPUQUOTA}%
+EOM
+    else
+        echo -e "CPUAccounting=false" >> "${SYSTEMD_UNIT_PATH}"
+    fi
+    cat << 'EOM' >> "${SYSTEMD_UNIT_PATH}"
+#Runtime
+TimeoutStartSec=600
+ExecStart=/usr/bin/ipfs daemon --migrate --enable-gc
+TimeoutSec=120
+Restart=on-failure
+RestartSec=120
+KillSignal=SIGINT
+RuntimeMaxSec=172800
+MemorySwapMax=0
+EOM
+
+    db_get ipfs-kubo/hardened || true
+    if [[ "${RET}" == "true" ]]
+    then
+        db_set ipfs-kubo/system-wide "true" || true
+        cat << 'EOM' >> "${SYSTEMD_UNIT_PATH}"
+# Hardened mode
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+PrivateDevices=true
+DevicePolicy=closed
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+ProtectHostname=true
+PrivateTmp=true
+ProtectClock=true
+LockPersonality=true
+RestrictNamespaces=true
+RestrictRealtime=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged
+ProtectHome=true
+RemoveIPC=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+EOM
+        db_get ipfs-kubo/repository-directory || true
+        echo -e "ReadWritePaths=${RET}" >> "${SYSTEMD_UNIT_PATH}"
+    fi
+    db_get ipfs-kubo/user-name || true
+    echo -e "User=${RET}" >> "${SYSTEMD_UNIT_PATH}"
+    echo -e "Group=${RET}" >> "${SYSTEMD_UNIT_PATH}"
+
+    cat << 'EOM' >> "${SYSTEMD_UNIT_PATH}"
+[Install]
+WantedBy=default.target
+EOM
+}
+
+function generate_userspace {
+    db_get ipfs-kubo/user-name || true
+    local IPFS_USERNAME="${RET}"
+    local IPFS_GROUPNAME="ipfs"
+    db_get ipfs-kubo/system-wide || true
+    local IPFS_SYSTEMUSER="${RET}"
+    db_get ipfs-kubo/repository-directory || true
+    local IPFS_REPOSITORY="${RET}"
+    if [[ ! -d "${IPFS_REPOSITORY}" ]]
+    then
+        mkdir -p "${IPFS_REPOSITORY}"
+    fi
+    if ! getent group "${IPFS_GROUPNAME}" &>/dev/null 
+    then
+        if [[ "${IPFS_SYSTEMUSER}" == "true" ]]
+        then
+            addgroup --system "${IPFS_GROUPNAME}"
+        else
+            addgroup "${IPFS_GROUPNAME}"
+        fi
+    fi
+    if ! id "${IPFS_USERNAME}" &>/dev/null 
+    then
+        if [[ "${IPFS_SYSTEMUSER}" == "true" ]]
+        then
+            adduser --system --home "${IPFS_REPOSITORY}" --no-create-home --disabled-password --disabled-login --gecos "IPFS" --ingroup "${IPFS_GROUPNAME}" "${IPFS_USERNAME}"
+        else
+            adduser --home "${IPFS_REPOSITORY}" --no-create-home --gecos "IPFS" --ingroup "${IPFS_GROUPNAME}" "${IPFS_USERNAME}"
+        fi
+    else
+        usermod --append --groups "${IPFS_GROUPNAME}" "${IPFS_USERNAME}"
+    fi
+    if [[ "${IPFS_SYSTEMUSER}" == "true" ]]
+    then
+        touch /etc/profile.d/ipfs.sh
+        tee --append /etc/profile.d/ipfs.sh > /dev/null << EOM
+# Please add your user to the ipfs group to make him able to execute
+# IPFS commands
+export IPFS_PATH="${IPFS_REPOSITORY}"
+EOM
+    else
+        local USER_PROFILE_SCRIPT="$(getent passwd ${IPFS_USERNAME} | cut -d: -f6)/.profile"
+        if ! grep -q "IPFS_PATH" "${USER_PROFILE_SCRIPT}"
+        then
+            tee --append "${USER_PROFILE_SCRIPT}" > /dev/null << EOM
+export IPFS_PATH="${IPFS_REPOSITORY}"
+EOM
+        fi
+    fi
+}
+
+function initialize_service {
+    db_get ipfs-kubo/user-name || true
+    local IPFS_USERNAME="${RET}"
+    local IPFS_GROUPNAME="ipfs"
+    db_get ipfs-kubo/repository-directory || true
+    local IPFS_REPOSITORY="${RET}"
+    if [[ -d "${IPFS_REPOSITORY}" ]]
+    then
+        chown -R "${IPFS_USERNAME}":"${IPFS_GROUPNAME}" "${IPFS_REPOSITORY}"
+        chmod 770 "${IPFS_REPOSITORY}"
+    fi
+    db_get ipfs-kubo/predefined-config || true
+    local IPFS_CONFIG="${RET}"
+    if [[ "${IPFS_CONFIG}" != "${IPFS_REPOSITORY}/config" ]]
+    then
+        if [[ -f "${IPFS_CONFIG}" && ! -f "${IPFS_REPOSITORY}/config" ]]
+        then
+            cp "${IPFS_CONFIG}" "${IPFS_REPOSITORY}/config"
+        fi
+    fi
+    chown -R "${IPFS_USERNAME}":"${IPFS_GROUPNAME}" "${IPFS_REPOSITORY}"
+    chmod -R 770 "${IPFS_REPOSITORY}"
+    db_get ipfs-kubo/network-profile || true
+    local IPFS_NETWORK_PROFILE="${RET}"
+    if [[ ! -f "${IPFS_REPOSITORY}/config" ]]
+    then
+        IPFS_PATH="${IPFS_REPOSITORY}" HOME="${IPFS_REPOSITORY}" su -g "${IPFS_GROUPNAME}" --preserve-environment -c "ipfs init --algorithm ed25519 --profile default-datastore,${IPFS_NETWORK_PROFILE}" ${IPFS_USERNAME}
+        cp "${IPFS_REPOSITORY}/config" "${IPFS_CONFIG}"
+        chown "${IPFS_USERNAME}":"${IPFS_GROUPNAME}" "${IPFS_CONFIG}"
+    else
+        mv "${IPFS_REPOSITORY}/config" "${IPFS_REPOSITORY}/config.bak"
+        IPFS_PATH="${IPFS_REPOSITORY}" HOME="${IPFS_REPOSITORY}" su -g "${IPFS_GROUPNAME}" --preserve-environment -c "ipfs init \"${IPFS_CONFIG}\"" ${IPFS_USERNAME}
+    fi
+}
+
+case "$1" in
+    configure)
+        if [[ -z "${2}" ]]
+        then
+            generate_systemd_unit
+            generate_userspace
+            initialize_service
+            deb-systemd-helper enable ipfs.service
+            deb-systemd-invoke start ipfs.service
+        else
+            generate_systemd_unit
+            deb-systemd-helper reenable ipfs.service
+            deb-systemd-invoke start ipfs.service
+        fi
+    ;;
+
+    upgrade)
+        generate_systemd_unit
+        deb-systemd-invoke restart ipfs.service
+    ;;
+    
+    abort-upgrade)
+        deb-systemd-invoke stop ipfs.service
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+

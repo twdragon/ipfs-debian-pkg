@@ -1,0 +1,133 @@
+Template: ipfs-kubo/repository-directory
+Type: string
+Description: IPFS repository directory:
+ This directory will contain the IPFS repository. It will contain all the data
+ cached, stored or downloaded from IPFS network in its block-based raw
+ representation. The default value is /var/ipfs. Please note that this
+ directory should be placed on the volume having enough space to store all your
+ repository data.
+
+Template: ipfs-kubo/repository-size-note
+Type: note
+Description: Initial size of the IPFS repository - 10GiB
+ The repository size is one of the most important parameters you should define
+ for your IPFS node, because the amount of data you will be able to share using
+ your node depends from it entirely. The installation script does not set this
+ parameter for you explicitly, so please edit directly your configuration file
+ to set it up! The default value of 10 GiB is defined in Kubo's source code,
+ and it is a subject to change in the future, so please take care of it and
+ edit your configuration file thoroughly!
+
+Template: ipfs-kubo/predefined-config
+Type: string
+Description: IPFS daemon configuration backup file:
+ If you have a predefined configuration file for your daemon, please list it
+ here. In the case this file exists, the daemon will copy it to the repository.
+ .
+ NOTE: the file will be COPIED, not linked or moved! Your specified config
+ will be used as a TEMPLATE to generate a NEW configuration! You should then
+ use the configuration file located INSIDE THE REPOSITORY to configure your
+ IPFS node.
+ .
+ NOTE: when Kubo will be removed, this file will be replaced with a backup of
+ your current configuration file.
+
+Template: ipfs-kubo/system-wide
+Type: boolean
+Default: true
+Description: Install IPFS Kubo system-wide?
+ If you don't want to install Kubo system-wide, please select NO or FALSE here
+ and indicate the username for which you want to make IPFS commands available.
+ Otherwise, the system user with the name 'ipfs' will be created, and all the
+ commands will be available for the users who are added in 'ipfs' group.
+ .
+ NOTE: If the non-system username does not exist, the user account will be
+ created without a password! You should then select a proper password for this
+ new user and adjust the security rules for him properly.
+
+Template: ipfs-kubo/user-name
+Type: select
+Choices: ${sysuser}
+Description: IPFS service user name.
+ This is the name of the user who will own the IPFS repository. For him all the
+ operations will be allowed just from CLI because the systemd daemon will use
+ this username to run the IPFS daemon in order.
+
+Template: ipfs-kubo/network-profile-note
+Type: note
+Description: IPFS networking profile
+ CAUTION!!! Thorough selection of the proper networking profile for your IPFS
+ daemon is IMPORTANT!!! Please read this text carefully!
+ .
+ - server - the profile dedicated to the systems that have publicly available
+ external IP address, assuming the loal peer discovery should be closed.
+ .
+ - test - this profile reduces the external interactions made my IPFS node as
+ much as it is possible, feasible for testing environments.
+ .
+ - lowpower - the special profile dedicated to the machines that have very low
+ amount of resources. It reduces the IPFS impact on the system as much as it 
+ is possible. Consider also usage of the system service limits to reduce that
+ impact.
+ .
+ - default-networking [default] - local daemon profile, feasible for the most
+ desktop systems, including local peer discovery, pretty similar to BitTorrent.
+
+Template: ipfs-kubo/network-profile
+Type: select
+Choices: server, test, lowpower, default-networking
+Default: default-networking
+Description: IPFS network daemon profile
+ These are the possible names of the networking profile that should be applied
+ during the initial setup of IPFS daemon. Please select carefully according to
+ the description shown on the previous screen!
+
+Template: ipfs-kubo/memory-quota
+Type: select
+Choices: 512MiB, 1GiB, 2GiB, 4GiB, 6GiB, 8GiB, 12GiB, unlimited
+Default: unlimited
+Description: IPFS network daemon memory accounting profile
+ Select the amount of memory your IPFS daemon will be limited to. CAUTION!!!
+ This number should comply with the real amount of memory installed in the
+ system, otherwise it will have no effect!
+
+Template: ipfs-kubo/cpu-quota
+Type: select
+Choices: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, unlimited
+Default: unlimited
+Description: IPFS network daemon CPU cores accounting profile
+ Select the quantity of the CPU cores your IPFS daemon will be limited to.
+ CAUTION!!! This number should comply with the real CPU cores installed in
+ the system, otherwise it will have no effect!
+
+Template: ipfs-kubo/hardened
+Type: boolean
+Default: false
+Description: Install IPFS Kubo in Hardened mode?
+ If this option is turned on, IPFS Kubo systemd service will be installed in
+ Hardened Security mode. This would affect the access rules and user experience
+ for files and directories. It is not recommended to use this mode unless you
+ do not know what are you doing and why do you need such a high security level.
+ .
+ NOTE! This also overrides an attempt to install Kubo in the userspace!
+
+Template: ipfs-kubo/repository-purge
+Type: boolean
+Default: false
+Description: Do you want to remove also the repository directory?
+ CAUTION! It will remove all the data you had stored in your IPFS repository
+ before without a possibility to recover them or to restore your repository
+ in the binary identical way!
+ .
+ NOTE: This parameter will be ignored unless Kubo is installed system-wide
+
+Template: ipfs-kubo/config-purge
+Type: boolean
+Default: false
+Description: Do you want to remove also the previous configuration backup?
+ CAUTION! It will remove all the setup you had made before, so to install IPFS
+ Kubo again you will be in need to write the new configuration file from
+ scratch.
+ .
+ NOTE: This parameter will be ignored unless Kubo is installed system-wide
+

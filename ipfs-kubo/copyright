@@ -1,0 +1,11 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: ipfs-kubo
+Upstream-Contact: IPFS Community <info@ipfs.tech>
+Source: https://github.com/ipfs/kubo
+
+Files: *
+Copyright: 2024 IPFS Community <info@ipfs.tech>
+License: MIT/Apache-2.0
+
+License: MIT/Apache-2.0
+  https://github.com/ipfs/kubo/blob/master/LICENSE

@@ -1,0 +1,19 @@
+Source: ipfs-kubo
+Section: net
+Priority: optional
+Standards-Version: 4.6.0
+Build-Depends: dpkg (>= 1.16.1), debhelper-compat (= 13), bash-completion, dh-sequence-bash-completion, sed (>= 4.0), gawk, curl, gcc (>= 7.0)
+Maintainer: IPFS Community & Contributors <info@ipfs.tech>
+Homepage: https://ipfs.tech
+Vcs-Git: https://github.com/ipfs/kubo.git
+Rules-Requires-Root: no
+
+Package: ipfs-kubo
+Architecture: amd64
+Pre-Depends: debconf (>= 0.2.26), coreutils (>= 5.2.0), adduser, bash (>= 3.0)
+Depends: systemd, sudo, ${shlibs:Depends}, ${misc:Depends}
+Description: Kubo was the first IPFS implementation and is the most widely used
+ one today. Implementing the Interplanetary Filesystem - the Web3 standard for
+ content-addressing, interoperable with HTTP. Thus powered by IPLD's data
+ models and the libp2p for network communication. Kubo is written in Go.
+

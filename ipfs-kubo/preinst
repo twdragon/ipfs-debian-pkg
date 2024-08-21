@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+
+if systemctl list-unit-files | grep -q "^ipfs" 
+then
+    if systemctl is-active --quiet "ipfs"
+    then
+        deb-systemd-invoke stop ipfs.service
+    fi
+fi
+
+#DEBHELPER#
+

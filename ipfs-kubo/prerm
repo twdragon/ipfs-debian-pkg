@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+source /usr/share/debconf/confmodule
+db_version 2.0
+
+deb-systemd-invoke stop ipfs.service
+
+db_get ipfs-kubo/repository-directory || true
+IPFS_REPOSITORY="${RET}"
+db_get ipfs-kubo/predefined-config || true
+IPFS_CONFIG="${RET}"
+cp "${IPFS_REPOSITORY}/config" "${IPFS_CONFIG}"
+
+#DEBHELPER#
+
