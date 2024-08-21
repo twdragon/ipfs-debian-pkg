@@ -1,7 +1,5 @@
 # IPFS Kubo Debian Package Handler
 
-This repository is intended to be a Git submodule allowing creation of the Debian package from [IPFS Kubo Go package](https://github.com/ipfs/kubo/). To do so, the repository should be cloned within the original local [Kubo Git repository](https://github.com/ipfs/kubo/), into the directory named `debian`. 
-
 ## Updating Changelog
 `mkchangelog` script is used to retrieve the Markdown changelog from the official documentation according to checked out tag name, and to update the Debian changelog. The last version of Kubo for which the changelog will be written here is `0.28.0`, later the maintainers should keep the version history moving accordingly.
 
