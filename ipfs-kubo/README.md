@@ -10,10 +10,10 @@ As the convenience locale for generating the changelog should be set to EN, the 
 
 The script should be invoked from the **root Kubo repository**.
 ```bash
-LC_TIME=en_US.UTF-8 ./debian/mkchangelog ./debian/changelog
+LC_TIME=en_US.UTF-8 ./debian/mkchangelog ./debian/changelog <DISTRONAME>
 ```
 
-Please review thorougly if you really need to update the Debian changelog. The script has a proactive protection against version duplicates.
+The script builds a valid Debian changelog over all versions of the Kubo repository since `0.20.0`. The `DISTRONAME` argument should be replaced with the proper Debian distribution codename if you want to build distribution-specific changelog for further signing.
 
 ## Building Package
 Then maintainer should call the following command from the **root Kubo repository**:
