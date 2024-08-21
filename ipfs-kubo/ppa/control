@@ -9,7 +9,7 @@ Vcs-Git: https://github.com/ipfs/kubo.git
 Rules-Requires-Root: no
 
 Package: ipfs-kubo
-Architecture: amd64
+Architecture: any
 Pre-Depends: debconf (>= 0.2.26), coreutils (>= 5.2.0), adduser, bash (>= 3.0)
 Depends: systemd, sudo, ${shlibs:Depends}, ${misc:Depends}
 Description: Kubo was the first IPFS implementation and is the most widely used
