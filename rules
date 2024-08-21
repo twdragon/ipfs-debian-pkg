@@ -18,6 +18,8 @@ endif
 	@echo 'Running bash completion generation'
 	./cmd/ipfs/ipfs commands completion bash > ./debian/ipfs-kubo.bash-completion
 
+binary-arch: build
+
 %:
 	dh $@ --with bash-completion
 
