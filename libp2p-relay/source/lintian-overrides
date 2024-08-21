@@ -1,0 +1,4 @@
+libp2p-relay: not-using-po-debconf
+libp2p-relay: untranslatable-debconf-templates
+libp2p-relay: custom-compression-in-debian-rules
+

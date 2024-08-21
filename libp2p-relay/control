@@ -1,0 +1,21 @@
+Source: libp2p-relay
+Section: net
+Priority: optional
+Standards-Version: 4.6.0
+Build-Depends: dpkg (>= 1.16.1), debhelper-compat (= 13), golang-1.22
+Maintainer: Protocol Labs & Contributors <contact@protocol.ai>
+Homepage: https://libp2p.io/
+Vcs-Git: https://github.com/libp2p/go-libp2p-relay-daemon
+Rules-Requires-Root: no
+
+Package: libp2p-relay
+Architecture: any
+Pre-Depends: debconf (>= 0.2.26), coreutils (>= 5.2.0), adduser, bash (>= 3.0)
+Depends: systemd, ${shlibs:Depends}, ${misc:Depends}
+Description: Standalone daemon that provides libp2p circuit relay services
+ A standalone daemon that provides libp2p circuit relay services, for both
+ protocol versions v1 and v2.
+ Spec:
+ - Version 1 - https://github.com/libp2p/specs/blob/master/relay/circuit-v1.md
+ - Version 2 - https://github.com/libp2p/specs/blob/master/relay/circuit-v2.md
+

@@ -1,0 +1,7 @@
+libp2p-relay: using-first-person-in-templates
+libp2p-relay: no-manual-page
+libp2p-relay: hardening-no-pie
+libp2p-relay: hardening-no-relro
+libp2p-relay: bash-completion-with-hashbang
+libp2p-relay: recursive-privilege-change
+

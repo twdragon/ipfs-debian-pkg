@@ -1,0 +1,48 @@
+#!/bin/bash
+set -e
+source /usr/share/debconf/confmodule
+db_version 2.0
+
+case "$1" in
+    configure)
+        if [[ -z "${2}" ]]
+        then
+            if ! getent group "ipfs" &>/dev/null
+            then
+                addgroup --system "ipfs"
+            fi
+            if ! id "ipfs" &>/dev/null 
+            then
+                adduser --system --home /nonexistent --no-create-home --disabled-password --disabled-login --gecos "IPFS" --ingroup "ipfs" "ipfs"
+            else
+                usermod --append --groups "ipfs" "ipfs"
+            fi
+            if [[ -f "/etc/libp2p/id" ]]
+            then
+                rm -f "/etc/libp2p/id"
+            fi
+            chown -R ipfs:ipfs /etc/libp2p
+            deb-systemd-helper enable libp2p-relay.service
+            deb-systemd-invoke start libp2p-relay.service
+        else
+            deb-systemd-helper reenable libp2p-relay.service
+            deb-systemd-invoke start libp2p-relay.service
+        fi
+    ;;
+
+    upgrade)
+        deb-systemd-invoke restart libp2p-relay.service
+    ;;
+    
+    abort-upgrade)
+        deb-systemd-invoke stop libp2p-relay.service
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+

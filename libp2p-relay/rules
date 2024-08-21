@@ -14,15 +14,12 @@ build:
 	export GOTMPDIR="./gotemp"
 	export GOTOOLCHAIN="local" 
 	export GOFLAGS="-mod=vendor"
-	make build
-	if [ ! -z "$(TMP)" ] ; then rm -rf "$(TMP)" ; fi
-	@echo 'Running bash completion generation'
-	./cmd/ipfs/ipfs commands completion bash > ./debian/ipfs-kubo.bash-completion
+	go build -o . ./...
 
 binary-arch: build
 
 %:
-	dh $@ --with bash-completion
+	dh $@
 
 override_dh_builddeb:
 	dh_builddeb -- -Zgzip
@@ -32,11 +29,11 @@ override_dh_dwz:
 
 override_dh_auto_clean:
 	@echo 'DH_AUTO_CLEAN overridden'
-	rm -f ./cmd/ipfs/ipfs
+	rm -f ./libp2p-relay-daemon
 
 override_dh_auto_install:
 	@echo 'DH_AUTO_INSTALL overridden'
 
 override_dh_installsystemd:
-	dh_installsystemd --name=ipfs ipfs.service
+	dh_installsystemd --name=libp2p-relay libp2p-relay.service
 

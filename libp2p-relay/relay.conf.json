@@ -1,0 +1,46 @@
+{
+  "Resources": {
+    "MaxCircuits": 512,
+    "MaxCircuitsPerPeer": 64,
+    "BufferSize": 4096
+  },
+  "RelayV2": {
+    "Enabled": true,
+    "Resources": {
+      "Limit": {
+        "Duration": 300000000000,
+        "Data": 1048576
+      },
+      "ReservationTTL": 3600000000000,
+      "MaxReservations": 32,
+      "MaxCircuits": 16,
+      "BufferSize": 2048,
+      "MaxReservationsPerPeer": 8,
+      "MaxReservationsPerIP": 16,
+      "MaxReservationsPerASN": 32
+    }
+  },
+  "Network": {
+    "ListenAddrs": [
+        "/ip4/0.0.0.0/udp/4002/quic",
+        "/ip4/0.0.0.0/tcp/4003/ws",
+        "/ip4/0.0.0.0/tcp/4002",
+        "/ip6/::/tcp/4002",
+        "/ip6/::/udp/4002/quic",
+        "/ip6/::/tcp/4003/ws"
+    ],
+    "AnnounceAddrs": []
+  },
+  "Daemon": {
+    "PprofPort": -1
+  },
+  "ConnMgr": {
+    "ConnMgrLo": 128,
+    "ConnMgrHi": 512,
+    "ConnMgrGrace": 180000000000
+  },
+  "ACL": {
+    "AllowPeers": [],
+    "AllowSubnets": []
+  }
+}

@@ -1,0 +1,30 @@
+[Unit]
+Description=libp2p Standalone Relay
+After=network.target
+
+[Service]
+PIDFile=/var/run/libp2p-relay.pid
+LimitNOFILE=16000
+Type=simple
+ExecStart=/usr/bin/libp2p-relay-daemon -config /etc/libp2p/relay.conf.json -id /etc/libp2p/id
+TimeoutSec=20
+User=ipfs
+Group=ipfs
+Restart=on-failure
+RestartSec=60s
+KillSignal=SIGINT
+
+# Accounting
+MemoryAccounting=true
+MemoryHigh=536870912
+MemoryMax=1073741824
+CPUAccounting=true
+CPUQuota=100%
+MemorySwapMax=0
+
+# Logging
+SyslogIdentifier=libp2p-relay
+
+[Install]
+WantedBy=multi-user.target
+

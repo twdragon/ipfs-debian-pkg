@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+
+if systemctl list-unit-files | grep -q "^libp2p-relay" 
+then
+    if systemctl is-active --quiet "libp2p-relay"
+    then
+        deb-systemd-invoke stop libp2p-relay.service
+    fi
+fi
+
+#DEBHELPER#
+

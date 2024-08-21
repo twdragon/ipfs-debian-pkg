@@ -1,4 +1,0 @@
-cmd/ipfs/ipfs /usr/bin
-debian/README.md /usr/share/ipfs
-docs/examples/example-folder/test-dir/ipfs-logo.png /usr/share/icons/hicolor/1024x1024/apps
-

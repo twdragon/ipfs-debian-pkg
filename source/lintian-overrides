@@ -1,4 +1,0 @@
-ipfs-kubo: not-using-po-debconf
-ipfs-kubo: untranslatable-debconf-templates
-ipfs-kubo: custom-compression-in-debian-rules
-
