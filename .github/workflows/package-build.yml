@@ -12,10 +12,52 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 5
         steps:
-            - run: |
+            - name: Extract last versions from Debian repository and store them in the GitHub CI environment variables
+              run: |
                 curl https://ppa.launchpadcontent.net/twdragon/ipfs/ubuntu/dists/jammy/main/source/Sources.gz --output Sources.gz
                 gzip --decompress Sources.gz
-                grep -A 10 "^Package: ipfs-kubo" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+'
-                grep -A 10 "^Package: libp2p-relay" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+'
-                grep -A 10 "^Package: git-ipfs-remote-bridge" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+'
-                
+                IPFS_KUBO_VERSION_REPO=$(grep -A 10 "^Package: ipfs-kubo" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+')
+                LIBP2PRELAY_VERSION_REPO=$(grep -A 10 "^Package: libp2p-relay" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+')
+                GITIPFS_VERSION_REPO=$(grep -A 10 "^Package: git-ipfs-remote-bridge" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+')
+                echo "IPFS_KUBO_VERSION_REPO=${IPFS_KUBO_VERSION_REPO}" >> $GITHUB_ENV
+                echo "LIBP2PRELAY_VERSION_REPO=${LIBP2PRELAY_VERSION_REPO}" >> $GITHUB_ENV
+                echo "GITIPFS_VERSION_REPO=${GITIPFS_VERSION_REPO}" >> $GITHUB_ENV
+            - name: Clone IPFS Kubo
+              uses: actions/checkout@v4
+                with:
+                    submodules: 'true'
+                    fetch-depth: 0
+                    repository: 'ipfs/kubo'
+                    path: 'kubo'
+            - name: Clone libp2p relay daemon
+              uses: actions/checkout@v4
+                with:
+                    submodules: 'true'
+                    fetch-depth: 0
+                    repository: 'libp2p/go-libp2p-relay-daemon'
+                    path: 'libp2p-relay'
+            - name: Clone Git IPFS Remote Bridge
+              uses: actions/checkout@v4
+                with:
+                    submodules: 'true'
+                    fetch-depth: 0
+                    repository: 'ElettraSciComp/Git-IPFS-Remote-Bridge'
+                    path: 'git-ipfs-remote-bridge'
+            - name: Clone Debian maintaner scripts repository
+              uses: actions/checkout@v4
+                with:
+                    path: 'debian-scripts'
+            - name: Extract last versions from Github repositories and store them in the GitHub CI environment variables
+              run: |
+                cd kubo
+                IPFS_KUBO_VERSION=$(git describe --tags --abbrev=0 | grep -o -E '[0-9]+\.[0-9]+\.[0-9]+')
+                cd ../libp2p-relay
+                LIBP2PRELAY_VERSION=$(git describe --tags --abbrev=0 | grep -o -E '[0-9]+\.[0-9]+\.[0-9]+')
+                cd ../git-ipfs-remote-bridge
+                GITIPFS_VERSION=$(git describe --tags --abbrev=0 | grep -o -E '[0-9]+\.[0-9]+\.[0-9]+')
+                echo "IPFS_KUBO_VERSION=${IPFS_KUBO_VERSION}" >> $GITHUB_ENV
+                echo "LIBP2PRELAY_VERSION=${LIBP2PRELAY_VERSION}" >> $GITHUB_ENV
+                echo "GITIPFS_VERSION=${GITIPFS_VERSION}" >> $GITHUB_ENV
+            - name: Version comparison
+              run: |
+                echo $(dpkg --compare-versions "${{ IPFS_KUBO_VERSION }}" "gt" "${{ IPFS_KUBO_VERSION_REPO }}")
