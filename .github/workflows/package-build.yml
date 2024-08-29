@@ -14,7 +14,7 @@ jobs:
         steps:
             - run: |
                 curl https://ppa.launchpadcontent.net/twdragon/ipfs/ubuntu/dists/jammy/main/source/Sources.gz --output Sources.gz
-                gzip -- decompress Sources.gz
+                gzip --decompress Sources.gz
                 grep -A 10 "^Package: ipfs-kubo" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+'
                 grep -A 10 "^Package: libp2p-relay" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+'
                 grep -A 10 "^Package: git-ipfs-remote-bridge" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+'
