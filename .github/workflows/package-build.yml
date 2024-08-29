@@ -60,4 +60,4 @@ jobs:
                 echo "GITIPFS_VERSION=${GITIPFS_VERSION}" >> $GITHUB_ENV
             - name: Version comparison
               run: |
-                echo $(dpkg --compare-versions "${{ IPFS_KUBO_VERSION }}" "gt" "${{ IPFS_KUBO_VERSION_REPO }}")
+                echo $(dpkg --compare-versions "${IPFS_KUBO_VERSION}" "gt" "${IPFS_KUBO_VERSION_REPO}")
