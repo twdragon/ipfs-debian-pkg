@@ -14,14 +14,15 @@ jobs:
         steps:
             - name: Extract last versions from Debian repository and store them in the GitHub CI environment variables
               run: |
+                echo 'Extracting version information from https://ppa.launchpadcontent.net/twdragon/ipfs/ubuntu/dists/jammy/main/source/Sources.gz' >> ${GITHUB_STEP_SUMMARY}
                 curl https://ppa.launchpadcontent.net/twdragon/ipfs/ubuntu/dists/jammy/main/source/Sources.gz --output Sources.gz
                 gzip --decompress Sources.gz
                 IPFS_KUBO_VERSION_REPO=$(grep -A 10 "^Package: ipfs-kubo" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+')
                 LIBP2PRELAY_VERSION_REPO=$(grep -A 10 "^Package: libp2p-relay" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+')
                 GITIPFS_VERSION_REPO=$(grep -A 10 "^Package: git-ipfs-remote-bridge" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+')
-                echo "IPFS_KUBO_VERSION_REPO=${IPFS_KUBO_VERSION_REPO}" >> $GITHUB_ENV
-                echo "LIBP2PRELAY_VERSION_REPO=${LIBP2PRELAY_VERSION_REPO}" >> $GITHUB_ENV
-                echo "GITIPFS_VERSION_REPO=${GITIPFS_VERSION_REPO}" >> $GITHUB_ENV
+                echo "IPFS_KUBO_VERSION_REPO=${IPFS_KUBO_VERSION_REPO}" >> ${GITHUB_ENV}
+                echo "LIBP2PRELAY_VERSION_REPO=${LIBP2PRELAY_VERSION_REPO}" >> ${GITHUB_ENV}
+                echo "GITIPFS_VERSION_REPO=${GITIPFS_VERSION_REPO}" >> ${GITHUB_ENV}
             - name: Clone IPFS Kubo
               uses: actions/checkout@v4
               with:
@@ -49,20 +50,22 @@ jobs:
                 path: 'debian-scripts'
             - name: Extract last versions from Github repositories and store them in the GitHub CI environment variables
               run: |
+                echo 'Extracting version information from Github repositories' >> ${GITHUB_STEP_SUMMARY}
                 cd kubo
                 IPFS_KUBO_VERSION=$(git describe --tags --abbrev=0 | grep -o -E '[0-9]+\.[0-9]+\.[0-9]+')
                 cd ../libp2p-relay
                 LIBP2PRELAY_VERSION=$(git describe --tags --abbrev=0 | grep -o -E '[0-9]+\.[0-9]+\.[0-9]+')
                 cd ../git-ipfs-remote-bridge
                 GITIPFS_VERSION=$(git describe --tags --abbrev=0 | grep -o -E '[0-9]+\.[0-9]+\.[0-9]+')
-                echo "IPFS_KUBO_VERSION=${IPFS_KUBO_VERSION}" >> $GITHUB_ENV
-                echo "LIBP2PRELAY_VERSION=${LIBP2PRELAY_VERSION}" >> $GITHUB_ENV
-                echo "GITIPFS_VERSION=${GITIPFS_VERSION}" >> $GITHUB_ENV
+                echo "IPFS_KUBO_VERSION=${IPFS_KUBO_VERSION}" >> ${GITHUB_ENV}
+                echo "LIBP2PRELAY_VERSION=${LIBP2PRELAY_VERSION}" >> ${GITHUB_ENV}
+                echo "GITIPFS_VERSION=${GITIPFS_VERSION}" >> ${GITHUB_ENV}
             - name: Version comparison
               run: |
+                echo -e "IPFS Kubo:\n - Github: \`${IPFS_KUBO_VERSION}\`\n - Ubuntu PPA: \`${IPFS_KUBO_VERSION_REPO}\`" >> ${GITHUB_STEP_SUMMARY}
                 if $(dpkg --compare-versions "${IPFS_KUBO_VERSION}" "gt" "${IPFS_KUBO_VERSION_REPO}")
                 then
-                    echo -e "{IPFS Kubo: found a release version \`${IPFS_KUBO_VERSION}\` > \`${IPFS_KUBO_VERSION_REPO}\`, running build}" >> ${GITHUB_STEP_SUMMARY}
+                    echo -e "IPFS Kubo: found a release version \`${IPFS_KUBO_VERSION}\` > \`${IPFS_KUBO_VERSION_REPO}\`, running build" >> ${GITHUB_STEP_SUMMARY}
                 else
-                    echo -e "{IPFS Kubo: cannot found a release version, release \`${IPFS_KUBO_VERSION}\` will not be built}" >> ${GITHUB_STEP_SUMMARY}
+                    echo -e "IPFS Kubo: cannot found a release version, release sources for \`${IPFS_KUBO_VERSION}\` will not be built" >> ${GITHUB_STEP_SUMMARY}
                 fi
