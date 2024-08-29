@@ -1,0 +1,23 @@
+on:
+    schedule:
+        - cron: '30 15 * * *'
+    push:
+        branches:
+            - 'master'
+defaults:
+    run:
+        shell: bash
+jobs:
+    version-analyzer:
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - name: curl
+              uses: kordlib/setup-curl@v1.0.0
+            - run: |
+                curl https://ppa.launchpadcontent.net/twdragon/ipfs/ubuntu/dists/jammy/main/source/Sources.gz --output Sources.gz
+                gzip Sources.gz
+                grep -A 10 "^Package: ipfs-kubo" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+'
+                grep -A 10 "^Package: libp2p-relay" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+'
+                grep -A 10 "^Package: git-ipfs-remote-bridge" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+'
+                
