@@ -12,8 +12,6 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 5
         steps:
-            - name: curl
-              uses: kordlib/setup-curl@v1.0.0
             - run: |
                 curl https://ppa.launchpadcontent.net/twdragon/ipfs/ubuntu/dists/jammy/main/source/Sources.gz --output Sources.gz
                 gzip Sources.gz
