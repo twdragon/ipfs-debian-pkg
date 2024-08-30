@@ -14,6 +14,11 @@ jobs:
         steps:
             - name: Extract last versions from Debian repository and store them in the GitHub CI environment variables
               run: |
+                echo -e "# IPFS Debian Package Builder CI Process \n\nBuild started: $(date +"%a, %d %b %Y %H:%M:%S %z")" >> ${GITHUB_STEP_SUMMARY}
+                echo -e "Run ID: \`${GITHUB_RUN_NUMBER}\`" >> ${GITHUB_STEP_SUMMARY}
+                echo -e "Workflow version: \`${GITHUB_WORKFLOW_SHA}\`" >> ${GITHUB_STEP_SUMMARY}
+                echo -e "Trigger: \`${GITHUB_EVENT_NAME}\`" >> ${GITHUB_STEP_SUMMARY}
+                echo -e "\n## Version analyzer\n" >> ${GITHUB_STEP_SUMMARY}
                 echo 'Extracting version information from https://ppa.launchpadcontent.net/twdragon/ipfs/ubuntu/dists/jammy/main/source/Sources.gz' >> ${GITHUB_STEP_SUMMARY}
                 curl https://ppa.launchpadcontent.net/twdragon/ipfs/ubuntu/dists/jammy/main/source/Sources.gz --output Sources.gz
                 gzip --decompress Sources.gz
@@ -30,6 +35,7 @@ jobs:
                 fetch-depth: 0
                 repository: 'ipfs/kubo'
                 path: 'kubo'
+              run: echo -e "\n - Cloning \`ipfs/kubo\`" >> ${GITHUB_STEP_SUMMARY}
             - name: Clone libp2p relay daemon
               uses: actions/checkout@v4
               with:
@@ -37,6 +43,7 @@ jobs:
                 fetch-depth: 0
                 repository: 'libp2p/go-libp2p-relay-daemon'
                 path: 'libp2p-relay'
+              run: echo -e "- Cloning \`libp2p/go-libp2p-relay-daemon\`" >> ${GITHUB_STEP_SUMMARY}
             - name: Clone Git IPFS Remote Bridge
               uses: actions/checkout@v4
               with:
@@ -44,13 +51,15 @@ jobs:
                 fetch-depth: 0
                 repository: 'ElettraSciComp/Git-IPFS-Remote-Bridge'
                 path: 'git-ipfs-remote-bridge'
+              run: echo -e "- Cloning \`ElettraSciComp/Git-IPFS-Remote-Bridge\`" >> ${GITHUB_STEP_SUMMARY}
             - name: Clone Debian maintaner scripts repository
               uses: actions/checkout@v4
               with:
                 path: 'debian-scripts'
+              run: echo -e "- Cloning \`twdragon/ipfs-debian-pkg\`" >> ${GITHUB_STEP_SUMMARY}
             - name: Extract last versions from Github repositories and store them in the GitHub CI environment variables
               run: |
-                echo 'Extracting version information from Github repositories' >> ${GITHUB_STEP_SUMMARY}
+                echo -e "\nExtracting and analyzing annotated tags from Git repositories" >> ${GITHUB_STEP_SUMMARY}
                 cd kubo
                 IPFS_KUBO_VERSION=$(git describe --tags --abbrev=0 | grep -o -E '[0-9]+\.[0-9]+\.[0-9]+')
                 cd ../libp2p-relay
