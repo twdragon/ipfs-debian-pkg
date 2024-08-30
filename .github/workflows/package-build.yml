@@ -11,6 +11,10 @@ jobs:
     version-analyzer:
         runs-on: ubuntu-latest
         timeout-minutes: 5
+        outputs:
+            build_kubo: ${{ steps.version_compare.outputs.kubo }}
+            build_relay: ${{ steps.version_compare.outputs.relay }}
+            build_ipfsgit: ${{ steps.version_compare.outputs.ipfsgit }}
         steps:
             - name: Extract last versions from Debian repository and store them in the GitHub CI environment variables
               run: |
@@ -66,17 +70,35 @@ jobs:
                 cd ../git-ipfs-remote-bridge
                 GITIPFS_VERSION=$(git describe --tags --abbrev=0 | grep -o -E '[0-9]+\.[0-9]+\.[0-9]+')
                 echo "IPFS_KUBO_VERSION=${IPFS_KUBO_VERSION}" >> ${GITHUB_ENV}
-                echo -e "\`\`\`IPFS_KUBO_VERSION=${IPFS_KUBO_VERSION}" >> ${GITHUB_STEP_SUMMARY}
+                echo -e "\`\`\`\nIPFS_KUBO_VERSION=${IPFS_KUBO_VERSION}" >> ${GITHUB_STEP_SUMMARY}
                 echo "LIBP2PRELAY_VERSION=${LIBP2PRELAY_VERSION}" >> ${GITHUB_ENV}
                 echo -e "LIBP2PRELAY_VERSION=${LIBP2PRELAY_VERSION}" >> ${GITHUB_STEP_SUMMARY}
                 echo "GITIPFS_VERSION=${GITIPFS_VERSION}" >> ${GITHUB_ENV}
                 echo -e "GITIPFS_VERSION=${GITIPFS_VERSION}\n\`\`\`" >> ${GITHUB_STEP_SUMMARY}
             - name: Version comparison
+              id: version_compare
               run: |
-                echo -e "IPFS Kubo:\n - Github: \`${IPFS_KUBO_VERSION}\`\n - Ubuntu PPA: \`${IPFS_KUBO_VERSION_REPO}\`" >> ${GITHUB_STEP_SUMMARY}
                 if $(dpkg --compare-versions "${IPFS_KUBO_VERSION}" "gt" "${IPFS_KUBO_VERSION_REPO}")
                 then
                     echo -e "\nIPFS Kubo: found a release version \`${IPFS_KUBO_VERSION}\` > \`${IPFS_KUBO_VERSION_REPO}\`, running build" >> ${GITHUB_STEP_SUMMARY}
+                    echo "kubo=true" >> "$GITHUB_OUTPUT"
                 else
                     echo -e "\nIPFS Kubo: cannot found a release version, release sources for \`${IPFS_KUBO_VERSION}\` will not be built" >> ${GITHUB_STEP_SUMMARY}
+                    echo "kubo=false" >> "$GITHUB_OUTPUT"
+                fi
+                if $(dpkg --compare-versions "${LIBP2PRELAY_VERSION}" "gt" "${LIBP2PRELAY_VERSION_REPO}")
+                then
+                    echo -e "\n\`libp2p\` relay daemon: found a release version \`${LIBP2PRELAY_VERSION}\` > \`${LIBP2PRELAY_VERSION_REPO}\`, running build" >> ${GITHUB_STEP_SUMMARY}
+                    echo "relay=true" >> "$GITHUB_OUTPUT"
+                else
+                    echo -e "\n\`libp2p\` relay daemon: cannot found a release version, release sources for \`${LIBP2PRELAY_VERSION}\` will not be built" >> ${GITHUB_STEP_SUMMARY}
+                    echo "relay=false" >> "$GITHUB_OUTPUT"
+                fi
+                if $(dpkg --compare-versions "${GITIPFS_VERSION}" "gt" "${GITIPFS_VERSION_REPO}")
+                then
+                    echo -e "\n\`libp2p\` relay daemon: found a release version \`${GITIPFS_VERSION}\` > \`${GITIPFS_VERSION_REPO}\`, running build" >> ${GITHUB_STEP_SUMMARY}
+                    echo "ipfsgit=true" >> "$GITHUB_OUTPUT"
+                else
+                    echo -e "\n\`libp2p\` relay daemon: cannot found a release version, release sources for \`${GITIPFS_VERSION}\` will not be built" >> ${GITHUB_STEP_SUMMARY}
+                    echo "ipfsgit=false" >> "$GITHUB_OUTPUT"
                 fi
