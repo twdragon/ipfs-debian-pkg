@@ -112,4 +112,4 @@ jobs:
             build_ipfsgit: ${{needs.version_analyzer.outputs.build_ipfsgit}}
         steps:
             - name: Test output transfer
-              run: echo -e "\n## Building IPFS Kubo\n\n${build_kubo} ${build_relay} ${build_ipfsgit}"
+              run: echo -e "\n# Building IPFS Kubo\n\n${build_kubo} ${build_relay} ${build_ipfsgit}" >> ${GITHUB_STEP_SUMMARY}
