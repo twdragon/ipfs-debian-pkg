@@ -35,7 +35,6 @@ jobs:
                 fetch-depth: 0
                 repository: 'ipfs/kubo'
                 path: 'kubo'
-              run: echo -e "\n - Cloning \`ipfs/kubo\`" >> ${GITHUB_STEP_SUMMARY}
             - name: Clone libp2p relay daemon
               uses: actions/checkout@v4
               with:
@@ -43,7 +42,6 @@ jobs:
                 fetch-depth: 0
                 repository: 'libp2p/go-libp2p-relay-daemon'
                 path: 'libp2p-relay'
-              run: echo -e "- Cloning \`libp2p/go-libp2p-relay-daemon\`" >> ${GITHUB_STEP_SUMMARY}
             - name: Clone Git IPFS Remote Bridge
               uses: actions/checkout@v4
               with:
@@ -51,12 +49,10 @@ jobs:
                 fetch-depth: 0
                 repository: 'ElettraSciComp/Git-IPFS-Remote-Bridge'
                 path: 'git-ipfs-remote-bridge'
-              run: echo -e "- Cloning \`ElettraSciComp/Git-IPFS-Remote-Bridge\`" >> ${GITHUB_STEP_SUMMARY}
             - name: Clone Debian maintaner scripts repository
               uses: actions/checkout@v4
               with:
                 path: 'debian-scripts'
-              run: echo -e "- Cloning \`twdragon/ipfs-debian-pkg\`" >> ${GITHUB_STEP_SUMMARY}
             - name: Extract last versions from Github repositories and store them in the GitHub CI environment variables
               run: |
                 echo -e "\nExtracting and analyzing annotated tags from Git repositories" >> ${GITHUB_STEP_SUMMARY}
