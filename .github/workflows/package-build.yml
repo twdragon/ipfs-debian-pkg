@@ -80,10 +80,10 @@ jobs:
               run: |
                 if $(dpkg --compare-versions "${IPFS_KUBO_VERSION}" "gt" "${IPFS_KUBO_VERSION_REPO}")
                 then
-                    echo -e "\nIPFS Kubo: found a release version \`${IPFS_KUBO_VERSION}\` > \`${IPFS_KUBO_VERSION_REPO}\`, running build" >> ${GITHUB_STEP_SUMMARY}
+                    echo -e "\n**IPFS Kubo**: found a release version \`${IPFS_KUBO_VERSION}\` > \`${IPFS_KUBO_VERSION_REPO}\`, running build" >> ${GITHUB_STEP_SUMMARY}
                     echo "kubo=true" >> "$GITHUB_OUTPUT"
                 else
-                    echo -e "\nIPFS Kubo: cannot found a release version, release sources for \`${IPFS_KUBO_VERSION}\` will not be built" >> ${GITHUB_STEP_SUMMARY}
+                    echo -e "\n**IPFS Kubo**: cannot found a release version, release sources for \`${IPFS_KUBO_VERSION}\` will not be built" >> ${GITHUB_STEP_SUMMARY}
                     echo "kubo=false" >> "$GITHUB_OUTPUT"
                 fi
                 if $(dpkg --compare-versions "${LIBP2PRELAY_VERSION}" "gt" "${LIBP2PRELAY_VERSION_REPO}")
@@ -91,14 +91,25 @@ jobs:
                     echo -e "\n\`libp2p\` relay daemon: found a release version \`${LIBP2PRELAY_VERSION}\` > \`${LIBP2PRELAY_VERSION_REPO}\`, running build" >> ${GITHUB_STEP_SUMMARY}
                     echo "relay=true" >> "$GITHUB_OUTPUT"
                 else
-                    echo -e "\n\`libp2p\` relay daemon: cannot found a release version, release sources for \`${LIBP2PRELAY_VERSION}\` will not be built" >> ${GITHUB_STEP_SUMMARY}
+                    echo -e "\n\`libp2p\` **relay daemon**: cannot found a release version, release sources for \`${LIBP2PRELAY_VERSION}\` will not be built" >> ${GITHUB_STEP_SUMMARY}
                     echo "relay=false" >> "$GITHUB_OUTPUT"
                 fi
                 if $(dpkg --compare-versions "${GITIPFS_VERSION}" "gt" "${GITIPFS_VERSION_REPO}")
                 then
-                    echo -e "\n\`libp2p\` relay daemon: found a release version \`${GITIPFS_VERSION}\` > \`${GITIPFS_VERSION_REPO}\`, running build" >> ${GITHUB_STEP_SUMMARY}
+                    echo -e "\n**IPFS Git Remote Bridge**: found a release version \`${GITIPFS_VERSION}\` > \`${GITIPFS_VERSION_REPO}\`, running build" >> ${GITHUB_STEP_SUMMARY}
                     echo "ipfsgit=true" >> "$GITHUB_OUTPUT"
                 else
-                    echo -e "\n\`libp2p\` relay daemon: cannot found a release version, release sources for \`${GITIPFS_VERSION}\` will not be built" >> ${GITHUB_STEP_SUMMARY}
+                    echo -e "\n**IPFS Git Remote Bridge**: cannot found a release version, release sources for \`${GITIPFS_VERSION}\` will not be built" >> ${GITHUB_STEP_SUMMARY}
                     echo "ipfsgit=false" >> "$GITHUB_OUTPUT"
                 fi
+    build-kubo:
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        needs: version-analyzer
+        env:
+            - build_kubo: ${{needs.version-analyzer.outputs.build_kubo}}
+            - build_relay: ${{needs.version-analyzer.outputs.build_relay}}
+            - build_ipfsgit: ${{needs.version-analyzer.outputs.build_ipfsgit}}
+        steps:
+            - name: Test output transfer
+              run: echo -e "\n## Building IPFS Kubo\n\n${build_kubo} ${build_relay} ${build_ipfsgit}"
