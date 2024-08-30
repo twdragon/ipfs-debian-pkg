@@ -8,7 +8,7 @@ defaults:
     run:
         shell: bash
 jobs:
-    version-analyzer:
+    version_analyzer:
         runs-on: ubuntu-latest
         timeout-minutes: 5
         outputs:
@@ -105,11 +105,11 @@ jobs:
     build-kubo:
         runs-on: ubuntu-latest
         timeout-minutes: 5
-        needs: version-analyzer
-        env:
-            - build_kubo: ${{needs.version-analyzer.outputs.build_kubo}}
-            - build_relay: ${{needs.version-analyzer.outputs.build_relay}}
-            - build_ipfsgit: ${{needs.version-analyzer.outputs.build_ipfsgit}}
+        needs: version_analyzer
         steps:
             - name: Test output transfer
+              env:
+                - build_kubo: ${{needs.version_analyzer.outputs.build_kubo}}
+                - build_relay: ${{needs.version_analyzer.outputs.build_relay}}
+                - build_ipfsgit: ${{needs.version_analyzer.outputs.build_ipfsgit}}
               run: echo -e "\n## Building IPFS Kubo\n\n${build_kubo} ${build_relay} ${build_ipfsgit}"
