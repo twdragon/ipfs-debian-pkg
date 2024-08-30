@@ -106,10 +106,10 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 5
         needs: version_analyzer
+        env:
+            build_kubo: ${{needs.version_analyzer.outputs.build_kubo}}
+            build_relay: ${{needs.version_analyzer.outputs.build_relay}}
+            build_ipfsgit: ${{needs.version_analyzer.outputs.build_ipfsgit}}
         steps:
             - name: Test output transfer
-              env:
-                - build_kubo: ${{needs.version_analyzer.outputs.build_kubo}}
-                - build_relay: ${{needs.version_analyzer.outputs.build_relay}}
-                - build_ipfsgit: ${{needs.version_analyzer.outputs.build_ipfsgit}}
               run: echo -e "\n## Building IPFS Kubo\n\n${build_kubo} ${build_relay} ${build_ipfsgit}"
