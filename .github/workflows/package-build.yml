@@ -151,12 +151,13 @@ jobs:
                 mv -v ./debian/ppa/rules ./debian/rules
                 LC_TIME=en_US.UTF-8 ./debian/mkchangelog ./debian/changelog ${{ env.UBUNTU_CODENAME }}
                 GOFLAGS="-mod=vendor" debuild -S -uc -us -d
+                GOFLAGS="-mod=vendor" debuild -b -uc -us -d
                 mkdir packages
                 mv -v ../ipfs-kubo*.* packages/
                 echo -e "IPFS Kubo compiled in:\n\`\`\`" >> ${GITHUB_STEP_SUMMARY}
                 ls -lh packages/ >> ${GITHUB_STEP_SUMMARY}
                 echo -e "\`\`\`\n"
-            - name: Upload package
+            - name: Upload unsigned packages
               uses: actions/upload-artifact@v4
               with:
                 name: kubo-ubuntu-ppa
