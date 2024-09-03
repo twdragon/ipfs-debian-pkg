@@ -204,6 +204,7 @@ jobs:
               run: |
                 cd gitipfs
                 git checkout $(git describe --tags --abbrev=0)
+                sed -i -e "s/UNRELEASED/${{ env.UBUNTU_CODENAME }}" debian/changelog
                 debuild -S -uc -us -d
                 mkdir packages
                 mv -v ../git-ipfs-remote-bridge*.* packages/
@@ -215,7 +216,7 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                 name: gitipfs-ubuntu-ppa
-                path: gitipfs/packages/ipfs-kubo*.*
+                path: gitipfs/packages/git-ipfs-remote-bridge*.*
             - name: Sign the source package
               run: |
                 cd gitipfs/packages
