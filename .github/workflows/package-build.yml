@@ -105,6 +105,7 @@ jobs:
                     echo "ipfsgit=false" >> "$GITHUB_OUTPUT"
                 fi
     build-kubo:
+        if: ${{ needs.version_analyzer.outputs.build_kubo }}
         runs-on: ubuntu-latest
         timeout-minutes: 15
         needs: version_analyzer
