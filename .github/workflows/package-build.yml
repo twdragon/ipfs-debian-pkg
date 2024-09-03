@@ -178,5 +178,5 @@ jobs:
             - name: Upload the built package to PPA
               run: |
                 cd kubo/packages
-                dput ppa:twdragon/ipfs $(find . -maxdepth 1 -name 'ipfs-kubo*_source.changes' -regextype egrep -exec cat {} \;)
+                dput ppa:twdragon/ipfs $(find . -maxdepth 1 -name 'ipfs-kubo*_source.changes' -regextype egrep)
                 cd ../..
