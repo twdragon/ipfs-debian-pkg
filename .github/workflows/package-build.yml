@@ -182,6 +182,7 @@ jobs:
                 dput ppa:twdragon/ipfs $(find . -maxdepth 1 -name 'ipfs-kubo*_source.changes' -regextype egrep)
                 cd ../..
     build-ipfsgit:
+        if: ${{ needs.version_analyzer.outputs.build_ipfsgit == 'true' }}
         runs-on: ubuntu-latest
         timeout-minutes: 15
         needs: version_analyzer
