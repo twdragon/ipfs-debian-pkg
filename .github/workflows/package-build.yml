@@ -181,3 +181,52 @@ jobs:
                 cd kubo/packages
                 dput ppa:twdragon/ipfs $(find . -maxdepth 1 -name 'ipfs-kubo*_source.changes' -regextype egrep)
                 cd ../..
+    build-ipfsgit:
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        needs: version_analyzer
+        env:
+            build_ipfsgit: ${{ needs.version_analyzer.outputs.build_ipfsgit }}
+        steps:
+            - name: Install Debian helper software
+              run: |
+                sudo apt-get update
+                sudo apt-get install -y debhelper curl gcc sed gawk dpkg-dev build-essential devscripts
+                echo -e "\n## Building IPFS Git Remote Bridge\n\nInstalled Debian helper packages: \`debhelper curl gcc sed gawk dpkg-dev build-essential devscripts\`" >> ${GITHUB_STEP_SUMMARY}
+            - name: Clone Git IPFS Remote Bridge
+              uses: actions/checkout@v4
+              with:
+                submodules: 'true'
+                fetch-depth: 0
+                repository: 'ElettraSciComp/Git-IPFS-Remote-Bridge'
+                path: 'gitipfs'
+            - name: Compile Git IPFS Remote Bridge
+              run: |
+                cd gitipfs
+                git checkout $(git describe --tags --abbrev=0)
+                debuild -S -uc -us -d
+                mkdir packages
+                mv -v ../git-ipfs-remote-bridge*.* packages/
+                echo -e "Git IPFS Remote Bridge compiled in:\n\`\`\`" >> ${GITHUB_STEP_SUMMARY}
+                ls -lh packages/ >> ${GITHUB_STEP_SUMMARY}
+                echo -e "\`\`\`\n"
+                cd ..
+            - name: Upload unsigned packages
+              uses: actions/upload-artifact@v4
+              with:
+                name: gitipfs-ubuntu-ppa
+                path: gitipfs/packages/ipfs-kubo*.*
+            - name: Sign the source package
+              run: |
+                cd gitipfs/packages
+                echo -e "\nSigning Git IPFS Remote Bridge:\n\`\`\`\n $(find . -maxdepth 1 -name 'git-ipfs-remote-bridge*_source.changes' -regextype egrep -exec cat {} \;) \n\`\`\`" >> ${GITHUB_STEP_SUMMARY}
+                echo "${{ secrets.DEBSIGN_SECRET_KEY }}" | base64 -d > secret
+                gpg --import secret
+                rm -f secret
+                debsign -k "${{ secrets.DEBSIGN_SECRET_FP }}" $(find . -maxdepth 1 -name 'git-ipfs-remote-bridge*_source.changes' -regextype egrep)
+                cd ../..
+            - name: Upload the built package to PPA
+              run: |
+                cd gitipfs/packages
+                dput ppa:twdragon/ipfs $(find . -maxdepth 1 -name 'git-ipfs-remote-bridge*_source.changes' -regextype egrep)
+                cd ../..
