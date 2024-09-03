@@ -164,8 +164,8 @@ jobs:
                 path: packages/ipfs-kubo*.*
             - name: Sign the source package
               run: |
-                cd packages
+                cd kubo/packages
                 echo -e "${{ secrets.DEBSIGN_SECRET_KEY }}" > secret
                 gpg --import secret
                 debsign "${{ secrets.DEBSIGN_SECRET_FP }}" $(find .. -maxdepth 1 -name 'ipfs-kubo*_source.changes' -regextype egrep)
-                cd ..
+                cd ../..
