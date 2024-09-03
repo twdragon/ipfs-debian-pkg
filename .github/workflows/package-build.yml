@@ -106,7 +106,7 @@ jobs:
                 fi
     build-kubo:
         runs-on: ubuntu-latest
-        timeout-minutes: 5
+        timeout-minutes: 15
         needs: version_analyzer
         env:
             build_kubo: ${{ needs.version_analyzer.outputs.build_kubo }}
@@ -162,3 +162,10 @@ jobs:
               with:
                 name: kubo-ubuntu-ppa
                 path: packages/ipfs-kubo*.*
+            - name: Sign the source package
+              run: |
+                cd packages
+                echo -e "${{ secrets.DEBSIGN_SECRET_KEY }}" > secret
+                gpg --import secret
+                debsign "${{ secrets.DEBSIGN_SECRET_FP }}" $(find .. -maxdepth 1 -name 'ipfs-kubo*_source.changes' -regextype egrep)
+                cd ..
