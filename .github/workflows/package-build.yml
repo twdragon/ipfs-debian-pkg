@@ -173,5 +173,5 @@ jobs:
                 echo "${{ secrets.DEBSIGN_SECRET_KEY }}" | base64 -d > secret
                 gpg --import secret
                 rm -f secret
-                debsign -k "${{ secrets.DEBSIGN_SECRET_FP }}" $(find .. -maxdepth 1 -name 'ipfs-kubo*_source.changes' -regextype egrep)
+                debsign -k "${{ secrets.DEBSIGN_SECRET_FP }}" $(find . -maxdepth 1 -name 'ipfs-kubo*_source.changes' -regextype egrep)
                 cd ../..
