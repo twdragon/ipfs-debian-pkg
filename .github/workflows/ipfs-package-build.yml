@@ -111,8 +111,6 @@ jobs:
         needs: version_analyzer
         env:
             build_kubo: ${{ needs.version_analyzer.outputs.build_kubo }}
-            build_relay: ${{ needs.version_analyzer.outputs.build_relay }}
-            build_ipfsgit: ${{ needs.version_analyzer.outputs.build_ipfsgit }}
         steps:
             - name: Install Debian helper software
               run: |
@@ -232,3 +230,52 @@ jobs:
                 cd gitipfs/packages
                 dput ppa:twdragon/ipfs $(find . -maxdepth 1 -name 'git-ipfs-remote-bridge*_source.changes' -regextype egrep)
                 cd ../..
+    build-libp2prelay:
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        needs: version_analyzer
+        env:
+            build_relay: ${{ needs.version_analyzer.outputs.build_relay }}
+        steps:
+            - name: Install Debian helper software
+              run: |
+                sudo apt-get update
+                sudo apt-get install -y debhelper curl gcc sed gawk dpkg-dev build-essential devscripts
+                echo -e "\n## Building \`libp2p\` Relay Daemon\nInstalled Debian helper packages: \`debhelper curl gcc sed gawk dpkg-dev build-essential devscripts\`" >> ${GITHUB_STEP_SUMMARY}
+            - name: Clone libp2p relay daemon
+              uses: actions/checkout@v4
+              with:
+                submodules: 'true'
+                fetch-depth: 0
+                repository: 'libp2p/go-libp2p-relay-daemon'
+                path: 'relay'
+            - name: Clone Debian maintaner scripts repository
+              uses: actions/checkout@v4
+              with:
+                path: 'debian-scripts'
+            - name: Parse required Go version
+              run: |
+                cd relay
+                git checkout $(git describe --tags --abbrev=0)
+                GO_VERSION=$(grep -Po '(?<=go )[0-9]+\.[0-9]+([0-9]+|.*)$' go.mod)
+                echo -e "GO_VERSION=${GO_VERSION}" >> ${GITHUB_ENV}
+                echo -e "\nRequired Go version parsed from \`go.mod\`: \`${GO_VERSION}\`" >> ${GITHUB_STEP_SUMMARY}
+                cd ..
+            - name: Compile libp2p relay daemon
+              run: |
+                cd relay
+                go mod vendor
+                mkdir debian
+                cp -vr ../debian-scripts/libp2p-relay/* ./debian/
+                chmod +x ./debian/rules
+                LC_TIME=en_US.UTF-8 ./debian/mkchangelog ./debian/changelog ${{ env.UBUNTU_CODENAME }}
+                GOFLAGS="-mod=vendor" debuild -S -uc -us -d
+                rm ./debian/changelog
+                LC_TIME=en_US.UTF-8 ./debian/mkchangelog ./debian/changelog
+                GOFLAGS="-mod=vendor" debuild -b -uc -us -d
+                mkdir packages
+                mv -v ../libp2p-relay*.* packages/
+                echo -e "\`libp2p\` relay daemon compiled in:\n\`\`\`" >> ${GITHUB_STEP_SUMMARY}
+                ls -lh packages/ >> ${GITHUB_STEP_SUMMARY}
+                echo -e "\`\`\`\n"
+                cd ..
