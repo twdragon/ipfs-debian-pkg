@@ -231,6 +231,7 @@ jobs:
                 dput ppa:twdragon/ipfs $(find . -maxdepth 1 -name 'git-ipfs-remote-bridge*_source.changes' -regextype egrep)
                 cd ../..
     build-libp2prelay:
+        if: ${{ needs.version_analyzer.outputs.build_relay == 'true' }}
         runs-on: ubuntu-latest
         timeout-minutes: 15
         needs: version_analyzer
@@ -253,10 +254,18 @@ jobs:
               uses: actions/checkout@v4
               with:
                 path: 'debian-scripts'
+            - name: Parse required Go version
+              run: |
+                cd relay
+                git checkout $(git describe --tags --abbrev=0)
+                GO_VERSION=$(grep -Po '(?<=go )[0-9]+\.[0-9]+([0-9]+|.*)$' go.mod)
+                echo -e "GO_VERSION=${GO_VERSION}" >> ${GITHUB_ENV}
+                echo -e "\nRequired Go version parsed from \`go.mod\`: \`${GO_VERSION}\`" >> ${GITHUB_STEP_SUMMARY}
+                cd ..
             - name: Install Go compiler
               uses: actions/setup-go@v5
               with:
-                go-version: 1.22
+                go-version: ${{ env.GO_VERSION }}
             - name: Compile libp2p relay daemon
               run: |
                 cd relay
@@ -276,3 +285,17 @@ jobs:
                 ls -lh packages/ >> ${GITHUB_STEP_SUMMARY}
                 echo -e "\`\`\`\n"
                 cd ..
+            - name: Sign the source package
+              run: |
+                cd relay/packages
+                echo -e "\nSigning \`libp2p\` Relay Daemon:\n\`\`\`\n $(find . -maxdepth 1 -name 'libp2p-relay*_source.changes' -regextype egrep -exec cat {} \;) \n\`\`\`" >> ${GITHUB_STEP_SUMMARY}
+                echo "${{ secrets.DEBSIGN_SECRET_KEY }}" | base64 -d > secret
+                gpg --import secret
+                rm -f secret
+                debsign -k "${{ secrets.DEBSIGN_SECRET_FP }}" $(find . -maxdepth 1 -name 'libp2p-relay*_source.changes' -regextype egrep)
+                cd ../..
+            - name: Upload the built package to PPA
+              run: |
+                cd relay/packages
+                dput ppa:twdragon/ipfs $(find . -maxdepth 1 -name 'libp2p-relay*_source.changes' -regextype egrep)
+                cd ../..
