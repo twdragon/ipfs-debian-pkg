@@ -152,6 +152,8 @@ jobs:
                 LC_TIME=en_US.UTF-8 ./debian/mkchangelog ./debian/changelog
                 GOFLAGS="-mod=vendor" debuild -b -uc -us -d
                 rm ./debian/changelog
+                rm -rf ./vendor
+                go mod vendor
                 LC_TIME=en_US.UTF-8 ./debian/mkchangelog ./debian/changelog ${{ env.UBUNTU_CODENAME }}
                 GOFLAGS="-mod=vendor" debuild -S -uc -us -d
                 mkdir packages
