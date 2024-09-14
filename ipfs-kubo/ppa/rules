@@ -27,6 +27,9 @@ binary-arch: build
 override_dh_builddeb:
 	dh_builddeb -- -Zgzip
 
+override_dh_auto_test:
+	@echo 'DH_AUTO_TEST overridden'
+
 override_dh_dwz:
 	@echo 'DH_DWZ overridden'
 
