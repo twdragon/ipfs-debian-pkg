@@ -128,7 +128,7 @@ jobs:
               run: |
                 cd kubo
                 git checkout $(git describe --tags --abbrev=0)
-                GO_VERSION=$(grep -Po '(grep -Po '(?<= go-version: )[0-9]+\.[0-9]+\..*$' .github/workflows/gobuild.yml)
+                GO_VERSION=$(grep -Po '(?<= GO_VERSION: )[0-9]+\.[0-9]+\..*$' .github/workflows/interop.yml)
                 echo -e "GO_VERSION=${GO_VERSION}" >> ${GITHUB_ENV}
                 echo -e "\nRequired Go version parsed from \`.github/workflows/gobuild.yml\`: \`${GO_VERSION}\`" >> ${GITHUB_STEP_SUMMARY}
                 cd ..
@@ -149,11 +149,11 @@ jobs:
                 mv -v ./debian/ppa/control ./debian/control
                 mv -v ./debian/ppa/rules ./debian/rules
                 chmod +x ./debian/rules
-                LC_TIME=en_US.UTF-8 ./debian/mkchangelog ./debian/changelog ${{ env.UBUNTU_CODENAME }}
-                GOFLAGS="-mod=vendor" debuild -S -uc -us -d
-                rm ./debian/changelog
                 LC_TIME=en_US.UTF-8 ./debian/mkchangelog ./debian/changelog
                 GOFLAGS="-mod=vendor" debuild -b -uc -us -d
+                rm ./debian/changelog
+                LC_TIME=en_US.UTF-8 ./debian/mkchangelog ./debian/changelog ${{ env.UBUNTU_CODENAME }}
+                GOFLAGS="-mod=vendor" debuild -S -uc -us -d
                 mkdir packages
                 mv -v ../ipfs-kubo*.* packages/
                 echo -e "IPFS Kubo compiled in:\n\`\`\`" >> ${GITHUB_STEP_SUMMARY}
