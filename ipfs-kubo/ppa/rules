@@ -3,7 +3,7 @@
 include /usr/share/dpkg/architecture.mk
 
 build:
-	$(eval PATH := /usr/lib/go-1.22/bin:$(PATH))
+	$(eval PATH := /usr/lib/go-1.23/bin:$(PATH))
 	$(eval HOME := $(CURDIR))
 	export HOME="$(CURDIR)"
 	@echo "HOME = $(HOME)"
