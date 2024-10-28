@@ -1,5 +1,20 @@
 #!/bin/bash
 
+# System environment setup
+utf8_locale=$(locale -a | grep -i -E 'en_us\.(utf8|utf-8)' | head -n 1)
+if [ -n "$utf8_locale" ]; then
+    export LC_TIME="$utf8_locale"
+else
+    english_locale=$(locale -a | grep -i 'en_' | head -n 1)
+    if [ -n "$english_locale" ]; then
+        export LC_TIME="$english_locale"
+    else
+        echo "No English locale found. Please set up English locale to have the correct Debian changelog file!"
+        exit 1
+    fi
+fi
+
+# Tagging setup
 TAG_STRING=""
 VERSION_STRING=""
 TEMPLOG=$(mktemp)
@@ -7,10 +22,39 @@ CHANGELOG_FILE="${1}"
 TIMESTAMP=$(date +"%a, %d %b %Y %H:%M:%S %z")
 DISTRO_CODENAME="UNRELEASED"
 
+# Changelog Vendoring Table
+PACKAGE_CODENAME="libp2p-relay"
+PACKAGE_URGENCY="low"
+PACKAGE_VENDOR_NAME="Protocol Labs"
+PACKAGE_VENDOR_EMAIL="contact@protocol.ai"
+PACKAGE_VENDOR_DESCRIPTION="libp2p Development Team and Contributors"
+
+# Dynamic Vendoring
 if [[ ! -z "${2}" ]]
 then
     DISTRO_CODENAME="${2}"
 fi
+if [[ ! -z "${3}" ]]
+then
+    PACKAGE_CODENAME="${3}"
+fi
+if [[ ! -z "${4}" ]]
+then
+    PACKAGE_VENDOR_NAME="${4}"
+fi
+if [[ ! -z "${5}" ]]
+then
+    PACKAGE_VENDOR_EMAIL="${5}"
+fi
+if [[ ! -z "${6}" ]]
+then
+    PACKAGE_VENDOR_DESCRIPTION="${6}"
+fi
+if [[ ! -z "${7}" ]]
+then
+    PACKAGE_URGENCY="${7}"
+fi
+echo "Arguments: [/path/to/changelog] [ [distro-codename] [package-codename] [vendor-name] [vendor-email] [vendor-team-description] [urgency-marker] ]"
 
 if git describe --tags --exact-match > /dev/null 2>&1
 then
@@ -23,14 +67,14 @@ then
     fi
     LAST_MESSAGES=$(git log ${TAG_STRING} --pretty=format:"  * %s")
     tee "${TEMPLOG}" > /dev/null << EOM
-libp2p-relay (${VERSION_STRING}) ${DISTRO_CODENAME}; urgency=low
+${PACKAGE_CODENAME} (${VERSION_STRING}) ${DISTRO_CODENAME}; urgency=${PACKAGE_URGENCY}
 
-  [ libp2p Development Team and Contributors ]
+  [ ${PACKAGE_VENDOR_DESCRIPTION} ]
 EOM
     echo "${LAST_MESSAGES}" | sed '/^$/d' | sed -e 's/^-\ \+/\ \ \*\ /;s/^\ \+-\ \+/\ \ \ \ /' | sed -E 's/\(*\[(.*)\]\((.*)\)./ \2\ \1/g' | fmt -w 80 -s | tee --append "${TEMPLOG}" > /dev/null
     tee --append "${TEMPLOG}" > /dev/null << EOM
 
- -- Protocol Labs <contact@protocol.ai>  ${TIMESTAMP}
+ -- ${PACKAGE_VENDOR_NAME} <${PACKAGE_VENDOR_EMAIL}>  ${TIMESTAMP}
 
 EOM
     cat ${TEMPLOG} > "${CHANGELOG_FILE}"
@@ -41,9 +85,9 @@ else
     VERSION_STRING="${CLEAR_VERSION_STRING}+git${COMMIT_LAST}"
     LAST_MESSAGES=$(git log ${TAG_STRING}..HEAD --pretty=format:"  * %s")
     tee "${TEMPLOG}" > /dev/null << EOM
-libp2p-relay (${VERSION_STRING}) ${DISTRO_CODENAME}; urgency=low
+${PACKAGE_CODENAME} (${VERSION_STRING}) ${DISTRO_CODENAME}; urgency=${PACKAGE_URGENCY}
 
-  [ libp2p Development Team and Contributors ]
+  [ ${PACKAGE_VENDOR_DESCRIPTION} ]
 EOM
     echo "${LAST_MESSAGES}" | sed '/^$/d' | sed -e 's/^-\ \+/\ \ \*\ /;s/^\ \+-\ \+/\ \ \ \ /' | sed -E 's/\(*\[(.*)\]\((.*)\)./ \2\ \1/g' | fmt -w 80 -s | tee --append "${TEMPLOG}" > /dev/null
     tee --append "${TEMPLOG}" > /dev/null << EOM
@@ -51,22 +95,22 @@ EOM
 EOM
     tee --append "${TEMPLOG}" > /dev/null << EOM
 
- -- Protocol Labs <contact@protocol.ai>  ${TIMESTAMP}
+ -- ${PACKAGE_VENDOR_NAME} <${PACKAGE_VENDOR_EMAIL}>  ${TIMESTAMP}
 
 EOM
     PREV_TAG=$(git describe --tags --abbrev=0 "${TAG_STRING}^")
     LAST_MESSAGES=$(git log ${PREV_TAG}..${TAG_STRING} --pretty=format:"  * %s")
     tee --append "${TEMPLOG}" > /dev/null << EOM
-libp2p-relay (${CLEAR_VERSION_STRING}) ${DISTRO_CODENAME}; urgency=low
+${PACKAGE_CODENAME} (${CLEAR_VERSION_STRING}) ${DISTRO_CODENAME}; urgency=${PACKAGE_URGENCY}
 
-  [ libp2p Development Team and Contributors ]
+  [ ${PACKAGE_VENDOR_DESCRIPTION} ]
 EOM
     echo "${LAST_MESSAGES}" | sed '/^$/d' | sed -e 's/^-\ \+/\ \ \*\ /;s/^\ \+-\ \+/\ \ \ \ /' | sed -E 's/\(*\[(.*)\]\((.*)\)./ \2\ \1/g' | fmt -w 80 -s | tee --append "${TEMPLOG}" > /dev/null
     TAG_CREATED=$(git log -1 --format=%ct "${TAG_STRING}")
     TAG_TIMESTAMP=$(date -d "@${TAG_CREATED}" +"%a, %d %b %Y %H:%M:%S %z")
     tee --append "${TEMPLOG}" > /dev/null << EOM
 
- -- Protocol Labs <contact@protocol.ai>  ${TAG_TIMESTAMP}
+ -- ${PACKAGE_VENDOR_NAME} <${PACKAGE_VENDOR_EMAIL}>  ${TIMESTAMP}
 
 EOM
     cat ${TEMPLOG} > "${CHANGELOG_FILE}"
@@ -82,14 +126,14 @@ do
         PREV_TAG=$(git describe --tags --always --abbrev=0 "${GIT_TAG}^")
         LAST_MESSAGES=$(git log ${PREV_TAG}..${GIT_TAG} --pretty=format:"  * %s")
         tee --append "${TEMPLOG}" > /dev/null << EOM
-libp2p-relay (${VERSION_STRING}) ${DISTRO_CODENAME}; urgency=low
+${PACKAGE_CODENAME} (${VERSION_STRING}) ${DISTRO_CODENAME}; urgency=${PACKAGE_URGENCY}
 
-  [ libp2p Development Team and Contributors ]
+  [ ${PACKAGE_VENDOR_DESCRIPTION} ]
 EOM
         echo "${LAST_MESSAGES}" | sed '/^$/d' | sed -e 's/^-\ \+/\ \ \*\ /;s/^\ \+-\ \+/\ \ \ \ /' | sed -E 's/\(*\[(.*)\]\((.*)\)./ \2\ \1/g' | fmt -w 80 -s | tee --append "${TEMPLOG}" > /dev/null
         tee --append "${TEMPLOG}" > /dev/null << EOM
 
- -- Protocol Labs <contact@protocol.ai>  ${TAG_TIMESTAMP}
+ -- ${PACKAGE_VENDOR_NAME} <${PACKAGE_VENDOR_EMAIL}>  ${TAG_TIMESTAMP}
 
 EOM
         cat ${TEMPLOG} > "${CHANGELOG_FILE}"
