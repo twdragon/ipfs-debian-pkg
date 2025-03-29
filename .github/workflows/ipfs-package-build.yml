@@ -148,6 +148,9 @@ jobs:
                 cp -vr ../debian-scripts/ipfs-kubo/* ./debian/
                 mv -v ./debian/ppa/control ./debian/control
                 mv -v ./debian/ppa/rules ./debian/rules
+                SHORT_GO_VERSION=$(echo -e "${{ env.GO_VERSION }}" | sed -e 's/\([0-9]\+\)\.\([0-9]\+\)\..*/\1.\2/')
+                sed -i -e "s/golang-[0-9]\+\.[0-9]\+/golang-${SHORT_GO_VERSION}/" ./debian/control
+                sed -i -e "s/\/go-[0-9]\+\.[0-9]\+/\/go-${SHORT_GO_VERSION}/" ./debian/rules
                 chmod +x ./debian/rules
                 LC_TIME=en_US.UTF-8 ./debian/mkchangelog ./debian/changelog
                 GOFLAGS="-mod=vendor" debuild -b -uc -us -d
