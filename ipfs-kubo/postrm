@@ -18,7 +18,7 @@ then
         fi
     else
         USER_PROFILE_SCRIPT="$(getent passwd ${IPFS_USERNAME} | cut -d: -f6)/.profile"
-        sed -i -e '/^.*export\ *IPFS\_PATH=/d'
+        sed -i -e '/^.*export\ *IPFS\_PATH=/d' ${USER_PROFILE_SCRIPT}
     fi
 fi
 
