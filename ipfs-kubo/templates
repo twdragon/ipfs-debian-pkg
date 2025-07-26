@@ -1,5 +1,6 @@
 Template: ipfs-kubo/repository-directory
 Type: string
+Default: /util/ipfs
 Description: IPFS repository directory:
  This directory will contain the IPFS repository. It will contain all the data
  cached, stored or downloaded from IPFS network in its block-based raw
@@ -20,6 +21,7 @@ Description: Initial size of the IPFS repository - 10GiB
 
 Template: ipfs-kubo/predefined-config
 Type: string
+Default: /etc/default/ipfs
 Description: IPFS daemon configuration backup file:
  If you have a predefined configuration file for your daemon, please list it
  here. In the case this file exists, the daemon will copy it to the repository.
@@ -47,6 +49,7 @@ Description: Install IPFS Kubo system-wide?
 
 Template: ipfs-kubo/user-name
 Type: select
+Default: ${sysuser}
 Choices: ${sysuser}
 Description: IPFS service user name.
  This is the name of the user who will own the IPFS repository. For him all the
