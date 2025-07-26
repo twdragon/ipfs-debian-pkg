@@ -1,6 +1,6 @@
 Template: ipfs-kubo/repository-directory
 Type: string
-Default: /util/ipfs
+Default: /var/ipfs
 Description: IPFS repository directory:
  This directory will contain the IPFS repository. It will contain all the data
  cached, stored or downloaded from IPFS network in its block-based raw
