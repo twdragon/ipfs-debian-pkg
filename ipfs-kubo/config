@@ -31,9 +31,9 @@ then
     if [[ -z "${installed_version}" ]] # Installing first time
     then
         # Resetting parameters
-        db_set ipfs-kubo/repository-directory "${ipfs_repo_dir}"
-        db_set ipfs-kubo/predefined-config "${ipfs_config}"
-        db_set ipfs-kubo/user-name "${ipfs_username}"
+#        db_set ipfs-kubo/repository-directory "${ipfs_repo_dir}"
+#        db_set ipfs-kubo/predefined-config "${ipfs_config}"
+#        db_set ipfs-kubo/user-name "${ipfs_username}"
         db_input high ipfs-kubo/repository-directory || true
         db_input high ipfs-kubo/predefined-config || true
         db_input high ipfs-kubo/repository-size-note || true
