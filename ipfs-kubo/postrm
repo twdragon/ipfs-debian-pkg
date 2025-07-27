@@ -20,6 +20,10 @@ then
         USER_PROFILE_SCRIPT="$(getent passwd ${IPFS_USERNAME} | cut -d: -f6)/.profile"
         sed -i -e '/^.*export\ *IPFS\_PATH=/d' ${USER_PROFILE_SCRIPT}
     fi
+    if [[ -f "/etc/bash_completion.d/ipfs" ]]
+    then
+        rm "/etc/bash_completion.d/ipfs"
+    fi
 fi
 
 if [[ "${1}" == "purge" && "${IPFS_SYSTEMWIDE}" == "true" ]]
