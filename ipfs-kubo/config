@@ -46,6 +46,8 @@ then
             db_fset ipfs-kubo/user-name seen false
             db_input high ipfs-kubo/user-name || true
             db_go || true
+        else
+            db_set ipfs-kubo/user-name "${ipfs_username}"
         fi
         db_input high ipfs-kubo/network-profile-note || true
         db_input high ipfs-kubo/network-profile || true
