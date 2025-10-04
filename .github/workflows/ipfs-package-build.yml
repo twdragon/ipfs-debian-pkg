@@ -129,7 +129,7 @@ jobs:
                 cd kubo
                 git config advice.detachedHead false
                 git checkout $(git describe --tags --abbrev=0)
-                GO_VERSION=$(grep -Po '(?<= GO_VERSION: )[0-9]+\.[0-9]+\..*$' .github/workflows/interop.yml)
+                GO_VERSION=$(grep -Po '(?<=GO_MIN_VERSION = )[0-9]+\.[0-9]+$' mk/golang.mk)
                 echo -e "GO_VERSION=${GO_VERSION}" >> ${GITHUB_ENV}
                 echo -e "\nRequired Go version parsed from \`.github/workflows/interop.yml\`: \`${GO_VERSION}\`" >> ${GITHUB_STEP_SUMMARY}
                 cd ..
