@@ -130,6 +130,7 @@ jobs:
                 VERSION_TAG=$(git describe --tags --abbrev=0)
                 git checkout ${VERSION_TAG}
                 echo -e "\nSwitching to version: \`${VERSION_TAG}\`" >> ${GITHUB_STEP_SUMMARY}
+                grep -Po '(?<=GO_MIN_VERSION = )[0-9]+\.[0-9]+$' ./mk/golang.mk
                 GO_VERSION=$(grep -Po '(?<=GO_MIN_VERSION = )[0-9]+\.[0-9]+$' ./mk/golang.mk)
                 echo -e "GO_VERSION=${GO_VERSION}" >> ${GITHUB_ENV}
                 echo -e "\nRequired Go version parsed from \`mk/golang.mk\`: \`${GO_VERSION}\`" >> ${GITHUB_STEP_SUMMARY}
