@@ -243,7 +243,10 @@ case "$1" in
         fi
         if [[ -d "/etc/bash_completion.d" ]]
         then
+            db_get ipfs-kubo/repository-directory || true
+            local IPFS_REPOSITORY="${RET}"
             mv "${IPFS_REPOSITORY}/completion.bash" /etc/bash_completion.d/ipfs
+            unset IPFS_REPOSITORY
         fi
     ;;
 
