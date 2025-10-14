@@ -224,7 +224,20 @@ function initialize_service {
         mv "${IPFS_REPOSITORY}/config" "${IPFS_REPOSITORY}/config.bak"
         IPFS_PATH="${IPFS_REPOSITORY}" HOME="${IPFS_REPOSITORY}" su -g "${IPFS_GROUPNAME}" --preserve-environment -c "ipfs init \"${IPFS_CONFIG}\"" ${IPFS_USERNAME}
     fi
-    IPFS_PATH="${IPFS_REPOSITORY}" HOME="${IPFS_REPOSITORY}" su -g "${IPFS_GROUPNAME}" --preserve-environment -c "ipfs commands completion bash > ${IPFS_REPOSITORY}/completion.bash" ${IPFS_USERNAME}
+}
+
+function initialize_completion()
+{
+    db_get ipfs-kubo/user-name || true
+    local IPFS_USERNAME="${RET}"
+    local IPFS_GROUPNAME="ipfs"
+    db_get ipfs-kubo/repository-directory || true
+    local IPFS_REPOSITORY="${RET}"
+    if [[ -d "/etc/bash_completion.d" ]]
+    then
+        IPFS_PATH="${IPFS_REPOSITORY}" HOME="${IPFS_REPOSITORY}" su -g "${IPFS_GROUPNAME}" --preserve-environment -c "ipfs commands completion bash > ${IPFS_REPOSITORY}/completion.bash" ${IPFS_USERNAME}
+        mv "${IPFS_REPOSITORY}/completion.bash" /etc/bash_completion.d/ipfs
+    fi
 }
 
 case "$1" in
@@ -234,24 +247,20 @@ case "$1" in
             generate_systemd_unit
             generate_userspace
             initialize_service
+            initialize_completion
             deb-systemd-helper enable ipfs.service
             deb-systemd-invoke start ipfs.service
         else
             generate_systemd_unit
+            initialize_completion
             deb-systemd-helper reenable ipfs.service
             deb-systemd-invoke start ipfs.service
-        fi
-        if [[ -d "/etc/bash_completion.d" ]]
-        then
-            db_get ipfs-kubo/repository-directory || true
-            IPFS_REPOSITORY="${RET}"
-            mv "${IPFS_REPOSITORY}/completion.bash" /etc/bash_completion.d/ipfs
-            unset IPFS_REPOSITORY
         fi
     ;;
 
     upgrade)
         generate_systemd_unit
+        initialize_completion
         deb-systemd-invoke restart ipfs.service
     ;;
     
