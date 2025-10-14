@@ -223,8 +223,8 @@ function initialize_service {
     else
         mv "${IPFS_REPOSITORY}/config" "${IPFS_REPOSITORY}/config.bak"
         IPFS_PATH="${IPFS_REPOSITORY}" HOME="${IPFS_REPOSITORY}" su -g "${IPFS_GROUPNAME}" --preserve-environment -c "ipfs init \"${IPFS_CONFIG}\"" ${IPFS_USERNAME}
-        IPFS_PATH="${IPFS_REPOSITORY}" HOME="${IPFS_REPOSITORY}" su -g "${IPFS_GROUPNAME}" --preserve-environment -c "ipfs commands completion bash > ${IPFS_REPOSITORY}/completion.bash" ${IPFS_USERNAME}
     fi
+    IPFS_PATH="${IPFS_REPOSITORY}" HOME="${IPFS_REPOSITORY}" su -g "${IPFS_GROUPNAME}" --preserve-environment -c "ipfs commands completion bash > ${IPFS_REPOSITORY}/completion.bash" ${IPFS_USERNAME}
 }
 
 case "$1" in
