@@ -221,6 +221,7 @@ function initialize_service {
         cp "${IPFS_REPOSITORY}/config" "${IPFS_CONFIG}"
         chown "${IPFS_USERNAME}":"${IPFS_GROUPNAME}" "${IPFS_CONFIG}"
     else
+        cp -f "${IPFS_REPOSITORY}/config" "${IPFS_CONFIG}" # Config backup in default
         mv "${IPFS_REPOSITORY}/config" "${IPFS_REPOSITORY}/config.bak"
         IPFS_PATH="${IPFS_REPOSITORY}" HOME="${IPFS_REPOSITORY}" su -g "${IPFS_GROUPNAME}" --preserve-environment -c "ipfs init \"${IPFS_CONFIG}\"" ${IPFS_USERNAME}
     fi
