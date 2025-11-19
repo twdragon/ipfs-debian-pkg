@@ -197,8 +197,8 @@ jobs:
             - name: Install Debian helper software
               run: |
                 sudo apt-get update
-                sudo apt-get install -y debhelper curl gcc sed gawk dpkg-dev build-essential devscripts
-                echo -e "\n## Building IPFS Git Remote Bridge\n\nInstalled Debian helper packages: \`debhelper curl gcc sed gawk dpkg-dev build-essential devscripts\`" >> ${GITHUB_STEP_SUMMARY}
+                sudo apt-get install -y debhelper curl gcc sed gawk dpkg-dev build-essential devscripts pandoc
+                echo -e "\n## Building IPFS Git Remote Bridge\n\nInstalled Debian helper packages: \`debhelper curl gcc sed gawk dpkg-dev build-essential devscripts pandoc\`" >> ${GITHUB_STEP_SUMMARY}
             - name: Clone Git IPFS Remote Bridge
               uses: actions/checkout@v4
               with:
