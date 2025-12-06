@@ -199,8 +199,16 @@ jobs:
                 sudo apt-get update
                 sudo apt-get install -y debhelper curl gcc sed gawk dpkg-dev build-essential devscripts pandoc
                 echo -e "\n## Building IPFS Git Remote Bridge\n\nInstalled Debian helper packages: \`debhelper curl gcc sed gawk dpkg-dev build-essential devscripts pandoc\`" >> ${GITHUB_STEP_SUMMARY}
+            - name: Set up Python
+              uses: actions/checkout@v5
+              uses: actions/setup-python@v6
+              with:
+                python-version: '3.12'
+              run: |
+                python -m pip install --upgrade pip
+                pip install build twine
             - name: Clone Git IPFS Remote Bridge
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
               with:
                 submodules: 'true'
                 fetch-depth: 0
@@ -218,11 +226,26 @@ jobs:
                 ls -lh packages/ >> ${GITHUB_STEP_SUMMARY}
                 echo -e "\`\`\`\n"
                 cd ..
-            - name: Upload unsigned packages
+            - name: Build Python package
+              run: |
+                cd gitipfs
+                cp git-ipfs git_ipfs_remote_bridge/
+                cp git-remote-ipfs git_ipfs_remote_bridge/
+                python -m build
+                echo -e "Git IPFS Remote Bridge PyPI packages created in:\n\`\`\`" >> ${GITHUB_STEP_SUMMARY}
+                ls -lh dist/ >> ${GITHUB_STEP_SUMMARY}
+                echo -e "\`\`\`\n"
+                cd ..
+            - name: Upload unsigned Debian packages
               uses: actions/upload-artifact@v4
               with:
                 name: gitipfs-ubuntu-ppa
                 path: gitipfs/packages/git-ipfs-remote-bridge*.*
+            - name: Upload unsigned Python packages
+              uses: actions/upload-artifact@v5
+              with:
+                name: gitipfs-pypi-package
+                path: gitipfs/dist/git_ipfs_remote_bridge-*.*
             - name: Sign the source package
               run: |
                 cd gitipfs/packages
@@ -237,6 +260,31 @@ jobs:
                 cd gitipfs/packages
                 dput ppa:twdragon/ipfs $(find . -maxdepth 1 -name 'git-ipfs-remote-bridge*_source.changes' -regextype egrep)
                 cd ../..
+    upload-ipfsgit-pypi:
+        if: ${{ needs.version_analyzer.outputs.build_ipfsgit == 'true' }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        needs: build-ipfsgit
+        env:
+            build_ipfsgit: ${{ needs.version_analyzer.outputs.build_ipfsgit }}
+        environment:
+            name: pypi
+            url: https://pypi.org/p/git-ipfs-remote-bridge
+        permissions:
+            id-token: write
+        steps:
+            - name: Download PyPI Artifacts
+              uses: actions/download-artifact@v6
+              with:
+                name: python-package-distributions
+                path: dist/
+            - name: Upload PyPI Package
+              uses: pypa/gh-action-pypi-publish@release/v1
+              with:
+                attestations: false
+                verify-metadata: false
+                password: ${{ secrets.PYPI_UPLOAD_TOKEN }}
+                print-hash: true
     build-libp2prelay:
         if: ${{ needs.version_analyzer.outputs.build_relay == 'true' }}
         runs-on: ubuntu-latest
