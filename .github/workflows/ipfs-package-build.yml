@@ -199,14 +199,6 @@ jobs:
                 sudo apt-get update
                 sudo apt-get install -y debhelper curl gcc sed gawk dpkg-dev build-essential devscripts pandoc
                 echo -e "\n## Building IPFS Git Remote Bridge\n\nInstalled Debian helper packages: \`debhelper curl gcc sed gawk dpkg-dev build-essential devscripts pandoc\`" >> ${GITHUB_STEP_SUMMARY}
-            - name: Set up Python
-              uses: actions/checkout@v5
-              uses: actions/setup-python@v6
-              with:
-                python-version: '3.12'
-              run: |
-                python -m pip install --upgrade pip
-                pip install build twine
             - name: Clone Git IPFS Remote Bridge
               uses: actions/checkout@v5
               with:
@@ -214,6 +206,13 @@ jobs:
                 fetch-depth: 0
                 repository: 'ElettraSciComp/Git-IPFS-Remote-Bridge'
                 path: 'gitipfs'
+            - name: Set up Python
+              uses: actions/setup-python@v6
+              with:
+                python-version: '3.12'
+              run: |
+                python -m pip install --upgrade pip
+                pip install build twine
             - name: Compile Git IPFS Remote Bridge
               run: |
                 cd gitipfs
