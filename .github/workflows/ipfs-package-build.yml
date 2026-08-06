@@ -8,7 +8,7 @@ defaults:
     run:
         shell: bash
 env:
-    UBUNTU_CODENAME: jammy
+    UBUNTU_CODENAME: resolute
 jobs:
     version_analyzer:
         runs-on: ubuntu-latest
