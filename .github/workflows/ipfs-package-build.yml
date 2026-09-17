@@ -179,7 +179,8 @@ jobs:
                 echo "${{ secrets.DEBSIGN_SECRET_KEY }}" | base64 -d > secret
                 gpg --import secret
                 rm -f secret
-                debsign -k "${{ secrets.DEBSIGN_SECRET_FP }}" $(find . -maxdepth 1 -name 'ipfs-kubo*_source.changes' -regextype egrep)
+                DEBSIGN_SECRET_FINGERPRINT=$(gpg --list-secret-keys --keyid-format long --with-colons "${{ secrets.DEBSIGN_SECRET_FP }}" | grep -Po -e '(?<=^fpr:{9})([[:xdigit:]]{40})(?=:)')
+                debsign -k "${DEBSIGN_SECRET_FINGERPRINT}" $(find . -maxdepth 1 -name 'ipfs-kubo*_source.changes' -regextype egrep)
                 cd ../..
             - name: Upload the built package to PPA
               run: |
