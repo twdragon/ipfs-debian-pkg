@@ -52,6 +52,7 @@ jobs:
             - name: Compile IPFS Cluster
               run: |
                 cd ipfs-cluster
+                go mod tidy
                 go mod vendor
                 mkdir debian
                 cp -r ../debian-scripts/ipfs-cluster/* ./debian/
@@ -62,7 +63,9 @@ jobs:
                 LC_TIME=en_US.UTF-8 ../mkchangelog/mkchangelog debian/changelog ${{ env.UBUNTU_CODENAME }} ipfs-cluster "IPFS Cluster Developers" info@ipfs.tech "IPFS Community & Contributors" low
                 GOFLAGS="--mod=vendor" debuild -b -uc -us -d
                 rm ./debian/changelog
-                rm -rf ./vendor
+                go clean -modcache
+                rm -rf vendor/ pkg/
+                go mod tidy
                 go mod vendor
                 LC_TIME=en_US.UTF-8 ../mkchangelog/mkchangelog debian/changelog ${{ env.UBUNTU_CODENAME }} ipfs-cluster "IPFS Cluster Developers" info@ipfs.tech "IPFS Community & Contributors" low
                 GOFLAGS="-mod=vendor" debuild -S -uc -us -d
