@@ -1,0 +1,93 @@
+on:
+    schedule:
+        - cron: '00 14 * * 6'
+    push:
+        branches:
+            - 'main'
+defaults:
+    run:
+        shell: bash
+env:
+    UBUNTU_CODENAME: resolute
+jobs:
+    build_ipfs_cluster:
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        steps:
+            - name: Install Debian helper software
+              run: |
+                sudo apt-get update
+                sudo apt-get install -y debhelper curl gcc sed gawk dpkg-dev build-essential devscripts
+                echo -e "\n## Building IPFS Cluster \n\nInstalled Debian helper packages: \`debhelper curl gcc sed gawk dpkg-dev build-essential devscripts\`" >> ${GITHUB_STEP_SUMMARY}
+            - name: Clone IPFS Cluster
+              uses: actions/checkout@v4
+              with:
+                submodules: 'true'
+                fetch-depth: 0
+                repository: 'ipfs-cluster/ipfs-cluster'
+                path: 'ipfs-cluster'
+            - name: Parse required Go version
+              run: |
+                cd ipfs-cluster
+                git checkout $(git describe --tags --abbrev=0)
+                GO_VERSION=$(grep -Po '(?<=go )[0-9]+\.[0-9]+\.?[0-9]{0,2}$' go.mod)
+                echo -e "GO_VERSION=${GO_VERSION}" >> ${GITHUB_ENV}
+                echo -e "\nRequired Go version parsed from \`go.mod\`: \`${GO_VERSION}\`" >> ${GITHUB_STEP_SUMMARY}
+                cd ..
+            - name: Install Go compiler
+              uses: actions/setup-go@v5
+              with:
+                go-version: ${{ env.GO_VERSION }}
+            - name: Clone Debian maintaner scripts repository
+              uses: actions/checkout@v4
+              with:
+                path: 'debian-scripts'
+            - name: Clone mkchangelog
+              uses: actions/checkout@v4
+              with:
+                submodules: 'true'
+                fetch-depth: 0
+                repository: 'twdragon/mkchangelog'
+                path: 'mkchangelog'
+            - name: Compile IPFS Cluster
+              run: |
+                cd ipfs-cluster
+                go mod vendor
+                mkdir debian
+                cp -r ../debian-scripts/ipfs-cluster/* ./debian/
+                SHORT_GO_VERSION=$(echo -e "${{ env.GO_VERSION }}" | sed -e 's/\([0-9]\+\)\.\([0-9]\+\)\..*/\1.\2/')
+                sed -i -e "s/golang-[0-9]\+\.[0-9]\+/golang-${SHORT_GO_VERSION}/" ./debian/control
+                sed -i -e "s/\/go-[0-9]\+\.[0-9]\+/\/go-${SHORT_GO_VERSION}/" ./debian/rules
+                chmod +x ./debian/rules
+                LC_TIME=en_US.UTF-8 ../mkchangelog/mkchangelog debian/changelog ${{ env.UBUNTU_CODENAME }} ipfs-cluster "IPFS Cluster Developers" info@ipfs.tech "IPFS Community & Contributors" low
+                GOFLAGS="--mod=vendor" debuild -b -uc -us -d
+                rm ./debian/changelog
+                rm -rf ./vendor
+                go mod vendor
+                LC_TIME=en_US.UTF-8 ../mkchangelog/mkchangelog debian/changelog ${{ env.UBUNTU_CODENAME }} ipfs-cluster "IPFS Cluster Developers" info@ipfs.tech "IPFS Community & Contributors" low
+                GOFLAGS="-mod=vendor" debuild -S -uc -us -d
+                mkdir packages
+                mv -v ../ipfs-cluster*.* packages/
+                echo -e "IPFS Cluster compiled in:\n\`\`\`" >> ${GITHUB_STEP_SUMMARY}
+                ls -lh packages/ >> ${GITHUB_STEP_SUMMARY}
+                echo -e "\`\`\`\n"
+                cd ..
+            - name: Upload unsigned packages
+              uses: actions/upload-artifact@v4
+              with:
+                name: ipfs-cluster-ubuntu-ppa
+                path: ipfs-cluster/packages/ipfs-cluster*.*
+            - name: Sign the source package
+              run: |
+                cd ipfs-cluster/packages
+                echo -e "\nSigning IPFS Cluster:\n\`\`\`\n $(find . -maxdepth 1 -name 'ipfs-cluster*_source.changes' -regextype egrep -exec cat {} \;) \n\`\`\`" >> ${GITHUB_STEP_SUMMARY}
+                echo "${{ secrets.DEBSIGN_SECRET_KEY }}" | base64 -d > secret
+                gpg --import secret
+                rm -f secret
+                debsign -k "${{ secrets.DEBSIGN_SECRET_FP }}" $(find . -maxdepth 1 -name 'ipfs-cluster*_source.changes' -regextype egrep)
+                cd ../..
+            - name: Upload the built package to PPA
+              run: |
+                cd ipfs-cluster/packages
+                dput ppa:twdragon/ipfs $(find . -maxdepth 1 -name 'ipfs-cluster*_source.changes' -regextype egrep)
+                cd ../..

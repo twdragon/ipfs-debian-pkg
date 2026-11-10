@@ -1,0 +1,3 @@
+ipfs-cluster: no-manual-page
+ipfs-cluster: hardening-no-pie
+ipfs-cluster: hardening-no-relro

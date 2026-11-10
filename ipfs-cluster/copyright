@@ -1,0 +1,11 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: ipfs-cluster
+Upstream-Contact: IPFS Community <info@ipfs.tech>
+Source: https://github.com/ipfs-cluster/ipfs-cluster
+
+Files: *
+Copyright: 2026 IPFS Community <info@ipfs.tech>
+License: MIT/Apache-2.0
+
+License: MIT/Apache-2.0
+  https://github.com/ipfs-cluster/ipfs-cluster/blob/master/LICENSE

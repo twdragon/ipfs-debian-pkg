@@ -1,0 +1,18 @@
+Source: ipfs-cluster
+Section: net
+Priority: optional
+Standards-Version: 4.6.0
+Build-Depends: dpkg (>= 1.16.1), debhelper-compat (= 13), sed (>= 4.0), gawk, curl, gcc (>= 7.0), golang-1.25
+Maintainer: IPFS Community & Contributors <info@ipfs.tech>
+Homepage: https://ipfscluster.io
+Vcs-Git: https://github.com/ipfs-cluster/ipfs-cluster.git
+Rules-Requires-Root: no
+
+Package: ipfs-cluster
+Architecture: any
+Pre-Depends: debconf (>= 0.2.26), coreutils (>= 5.2.0), bash (>= 3.0), sed (>= 4.0)
+Depends: systemd, sudo, ${shlibs:Depends}, ${misc:Depends}, ipfs-kubo
+Description: IPFS Cluster provides data orchestration across a swarm of IPFS daemons
+ by allocating, replicating and tracking a global pinset distributed
+ among multiple peers.
+

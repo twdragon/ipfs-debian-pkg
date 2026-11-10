@@ -1,0 +1,68 @@
+#!/bin/bash
+set -e
+source /usr/share/debconf/confmodule
+db_version 2.0
+
+function patch_systemd_unit {
+    local SYSTEMD_UNIT_PATH="$(systemd-path systemd-system-unit)/ipfs-cluster.service"
+    if [[ -f "${SYSTEMD_UNIT_PATH}" ]]
+    then
+        cp -f "${SYSTEMD_UNIT_PATH}" /usr/share/ipfs/ipfs-cluster.service.bak
+        db_get ipfs-kubo/user-name || true
+        local IPFS_USERNAME="${RET}"
+        local IPFS_GROUPNAME="ipfs"
+        db_get ipfs-kubo/repository-directory || true
+        local IPFS_REPOSITORY="${RET}"
+        local IPFS_CLUSTER_CONTROL_DIR="${IPFS_REPOSITORY}/cluster"
+        if [[ ! -d  "${IPFS_CLUSTER_CONTROL_DIR}" ]]
+        then
+            mkdir -p "${IPFS_CLUSTER_CONTROL_DIR}"
+            chown "${IPFS_USERNAME}":"${IPFS_GROUPNAME}" "${IPFS_CLUSTER_CONTROL_DIR}"
+        fi
+        sed -i -e "s~IPFS_CLUSTER_PATH=.*~IPFS_CLUSTER_PATH=${IPFS_CLUSTER_CONTROL_DIR}~" "${SYSTEMD_UNIT_PATH}" 
+        sed -i -e "s/User=.*/User=${IPFS_USERNAME}/" "${SYSTEMD_UNIT_PATH}"
+        sed -i -e "s/Group=.*/Group=${IPFS_GROUPNAME}/" "${SYSTEMD_UNIT_PATH}"
+    fi
+}
+
+function generate_identity {
+    db_get ipfs-kubo/user-name || true
+    local IPFS_USERNAME="${RET}"
+    local IPFS_GROUPNAME="ipfs"
+    db_get ipfs-kubo/repository-directory || true
+    local IPFS_REPOSITORY="${RET}"
+    local IPFS_CLUSTER_CONTROL_DIR="${IPFS_REPOSITORY}/cluster"
+    IPFS_CLUSTER_PATH="${IPFS_CLUSTER_CONTROL_DIR}" HOME="${IPFS_REPOSITORY}" su -g "${IPFS_GROUPNAME}" --preserve-environment -c "ipfs-cluster-service init --consensus crdt --datastore pebble" ${IPFS_USERNAME}
+}
+
+case "$1" in
+    configure)
+        if [[ -z "${2}" ]]
+        then
+            patch_systemd_unit
+            generate_identity
+            deb-systemd-helper enable ipfs-cluster.service
+            deb-systemd-invoke start ipfs-cluster.service
+        else
+            patch_systemd_unit
+            deb-systemd-helper reenable ipfs-cluster.service
+            deb-systemd-invoke start ipfs-cluster.service
+        fi
+    ;;
+
+    upgrade)
+        deb-systemd-invoke restart ipfs-cluster.service
+    ;;
+    
+    abort-upgrade)
+        deb-systemd-invoke stop ipfs-cluster.service
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+#DEBHELPER#
+

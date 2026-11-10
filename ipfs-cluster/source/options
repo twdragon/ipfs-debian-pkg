@@ -1,0 +1,12 @@
+tar-ignore = ".idea"
+tar-ignore = ".git"
+tar-ignore = ".github"
+tar-ignore = ".gitignore"
+tar-ignore = ".cache"
+tar-ignore = ".cache"
+tar-ignore = ".codeclimate.yml"
+tar-ignore = ".dockerignore"
+tar-ignore = ".gitattributes"
+tar-ignore = ".gitmodules"
+tar-ignore = ".mailmap"
+

@@ -1,0 +1,4 @@
+cmd/ipfs-cluster-ctl/ipfs-cluster-ctl /usr/bin
+cmd/ipfs-cluster-follow/ipfs-cluster-follow /usr/bin
+cmd/ipfs-cluster-service/ipfs-cluster-service /usr/bin
+

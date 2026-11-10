@@ -1,0 +1,44 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/architecture.mk
+
+build:
+	$(eval PATH := /usr/lib/go-1.25/bin:$(PATH))
+	$(eval HOME := $(CURDIR))
+	export HOME="$(CURDIR)"
+	@echo "HOME = $(HOME)"
+	export GOENV='off'
+	export GO111MODULE='off'
+	export GOPATH="./gopath"
+	export GOMODCACHE='./gomod'
+	export GOTMPDIR="./gotemp"
+	export GOTOOLCHAIN="local" 
+	export GOFLAGS="-mod=vendor"
+	make build
+	if [ ! -z "$(TMP)" ] ; then rm -rf "$(TMP)" ; fi
+
+binary-arch: build
+
+%:
+	dh $@
+
+override_dh_builddeb:
+	dh_builddeb -- -Zgzip
+
+override_dh_auto_test:
+	@echo 'DH_AUTO_TEST overridden'
+
+override_dh_dwz:
+	@echo 'DH_DWZ overridden'
+
+override_dh_auto_clean:
+	@echo 'DH_AUTO_CLEAN overridden'
+	rm -f ./cmd/ipfs-cluster-ctl/ipfs-cluster-ctl
+	rm -f ./cmd/ipfs-cluster-follow/ipfs-cluster-follow
+	rm -f ./cmd/ipfs-cluster-service/ipfs-cluster-service
+
+override_dh_auto_install:
+	@echo 'DH_AUTO_INSTALL overridden'
+
+override_dh_installsystemd:
+	dh_installsystemd --name=ipfs-cluster ipfs-cluster.service

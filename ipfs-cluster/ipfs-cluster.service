@@ -1,0 +1,25 @@
+[Unit]
+Description=IPFS Cluster control service - P2P distributed content-based CDN cluster deployment infrastructure
+Documentation=https://ipfscluster.io/documentation/
+After=network.target remote-fs.target nss-lookup.target ipfs.service
+
+[Service]
+Type=simple
+Environment=IPFS_CLUSTER_PATH=/util/ipfs/cluster
+MemoryAccounting=false
+# CPU accounting: systemd
+CPUAccounting=true
+CPUQuota=200%
+#Runtime
+TimeoutStartSec=120
+ExecStart=/usr/bin/ipfs-cluster-service daemon
+TimeoutSec=120
+Restart=on-failure
+RestartSec=120
+KillSignal=SIGINT
+RuntimeMaxSec=172800
+MemorySwapMax=0
+User=ipfs
+Group=ipfs
+[Install]
+WantedBy=default.target

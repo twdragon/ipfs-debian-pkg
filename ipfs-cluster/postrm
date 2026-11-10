@@ -1,0 +1,19 @@
+#!/bin/bash
+set -e
+source /usr/share/debconf/confmodule
+db_version 2.0
+
+if [[ "${1}" == "purge" ]]
+then
+    db_get ipfs-kubo/repository-directory
+    IPFS_CLUSTER_CONTROL_DIR="${RET}/cluster"
+    deb-systemd-helper purge ipfs-cluster.service
+    db_go || true
+    if [[ -d "${IPFS_CLUSTER_CONTROL_DIR}" ]]
+    then
+        rm -rf "${IPFS_CLUSTER_CONTROL_DIR}"
+    fi
+fi
+
+#DEBHELPER#
+
