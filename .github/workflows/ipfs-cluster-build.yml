@@ -3,7 +3,7 @@ on:
         - cron: '00 14 * * 6'
     push:
         branches:
-            - 'main'
+            - 'master'
 defaults:
     run:
         shell: bash
