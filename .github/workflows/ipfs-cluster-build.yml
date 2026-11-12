@@ -10,9 +10,67 @@ defaults:
 env:
     UBUNTU_CODENAME: resolute
 jobs:
+    version_analyser:
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        outputs:
+            build_ipfs_cluster: ${{ steps.version_compare.outputs.ipfs_cluster }}
+        steps:
+            - name: Extract last version from Debian repository and store it in the GitHub CI environment variable
+              run: |
+                echo -e "# IPFS Cluster Debian Package Builder CI Process \n\nBuild started: $(date +"%a, %d %b %Y %H:%M:%S %z")" >> ${GITHUB_STEP_SUMMARY}
+                echo -e "Run ID: \`${GITHUB_RUN_NUMBER}\`" >> ${GITHUB_STEP_SUMMARY}
+                echo -e "Workflow YML hash: \`${GITHUB_WORKFLOW_SHA}\`" >> ${GITHUB_STEP_SUMMARY}
+                echo -e "Trigger: \`${GITHUB_EVENT_NAME}\`" >> ${GITHUB_STEP_SUMMARY}
+                echo -e "\n## Version analyzer\n" >> ${GITHUB_STEP_SUMMARY}
+                echo 'Extracting version information from https://ppa.launchpadcontent.net/twdragon/ipfs/ubuntu/dists/resolute/main/source/Sources.gz' >> ${GITHUB_STEP_SUMMARY}
+                curl https://ppa.launchpadcontent.net/twdragon/ipfs/ubuntu/dists/resolute/main/source/Sources.gz --output Sources.gz
+                gzip --decompress Sources.gz
+                IPFSCLUSTER_VERSION_REPO=$(grep -A 10 "^Package: xray-server" Sources | grep -Po '(?<=^Version: )[0-9]+\.[0-9]+\.[0-9]+')
+                echo "IPFSCLUSTER_VERSION_REPO=${IPFSCLUSTER_VERSION_REPO}" >> ${GITHUB_ENV}
+                echo -e "\`\`\`\nIPFSCLUSTER_VERSION_REPO=${IPFSCLUSTER_VERSION_REPO}" >> ${GITHUB_STEP_SUMMARY}
+            - name: Clone IPFS Cluster
+              uses: actions/checkout@v4
+              with:
+                submodules: 'true'
+                fetch-depth: 0
+                repository: 'ipfs-cluster/ipfs-cluster'
+                path: 'ipfs-cluster'
+            - name: Clone mkchangelog
+              uses: actions/checkout@v4
+              with:
+                submodules: 'true'
+                fetch-depth: 0
+                repository: 'twdragon/mkchangelog'
+                path: 'mkchangelog'
+            - name: Clone Debian maintaner scripts repository
+              uses: actions/checkout@v4
+              with:
+                path: 'debian-scripts'
+            - name: Extract last tagged version from Github repository and store it in the GitHub CI environment variable
+              run: |
+                echo -e "\nExtracting and analyzing annotated tags from Git repositories." >> ${GITHUB_STEP_SUMMARY}
+                cd ipfs-cluster
+                IPFSCLUSTER_VERSION=$(../mkchangelog/get-latest-tagged-semver HEAD)
+                rm -rf ../mkchangelog
+                echo "IPFSCLUSTER_VERSION=${IPFSCLUSTER_VERSION}" >> ${GITHUB_ENV}
+                echo -e "\`\`\`\nIPFSCLUSTER_VERSION=${IPFSCLUSTER_VERSION}" >> ${GITHUB_STEP_SUMMARY}
+            - name: Version comparison
+              id: version_compare
+              run: |
+                if $(dpkg --compare-versions "${IPFSCLUSTER_VERSION}" "gt" "${IPFSCLUSTER_VERSION_REPO}")
+                then
+                    echo -e "\n - **IPFS Cluster**: found a release version \`${IPFSCLUSTER_VERSION}\` > \`${IPFSCLUSTER_VERSION_REPO}\`, running build" >> ${GITHUB_STEP_SUMMARY}
+                    echo "ipfs_cluster=true" >> "$GITHUB_OUTPUT"
+                else
+                    echo -e "\n - **IPFS Cluster**: cannot found a release version, release sources for \`${IPFSCLUSTER_VERSION}\` will not be built" >> ${GITHUB_STEP_SUMMARY}
+                    echo "ipfs_cluster=false" >> "$GITHUB_OUTPUT"
+                fi
     build_ipfs_cluster:
+        if: ${{ needs.version_analyzer.outputs.build_ipfs_cluster == 'true' }}
         runs-on: ubuntu-latest
         timeout-minutes: 15
+        needs: version_analyzer
         steps:
             - name: Install Debian helper software
               run: |
