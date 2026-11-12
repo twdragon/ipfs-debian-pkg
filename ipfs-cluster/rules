@@ -7,13 +7,12 @@ build:
 	$(eval HOME := $(CURDIR))
 	export HOME="$(CURDIR)"
 	@echo "HOME = $(HOME)"
-	export GOENV='off'
 	export GO111MODULE='off'
-	export GOPATH="./gopath"
-	export GOMODCACHE='./gomod'
-	export GOTMPDIR="./gotemp"
 	export GOTOOLCHAIN="local" 
 	export GOFLAGS="-mod=vendor"
+	sed -i -e 's/-mod=.*/-mod=vendor/' cmd/ipfs-cluster-ctl/Makefile
+	sed -i -e 's/-mod=.*/-mod=vendor/' cmd/ipfs-cluster-follow/Makefile
+	sed -i -e 's/-mod=.*/-mod=vendor/' cmd/ipfs-cluster-service/Makefile
 	make build
 	if [ ! -z "$(TMP)" ] ; then rm -rf "$(TMP)" ; fi
 
