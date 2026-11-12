@@ -70,7 +70,7 @@ jobs:
         if: ${{ needs.version_analyzer.outputs.build_ipfs_cluster == 'true' }}
         runs-on: ubuntu-latest
         timeout-minutes: 15
-        needs: version_analyzer
+        needs: version_analyser
         steps:
             - name: Install Debian helper software
               run: |
